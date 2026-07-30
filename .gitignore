@@ -22,3 +22,26 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+/bin/
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+
+# IDE - IntelliJ (por si en algún momento migrás o alguien más clona con IntelliJ)
+.idea/
+*.iml
+
+# Credenciales / config local
+*.properties
+!application.properties.example
+config/db.properties
+
+# MySQL dumps si los generás localmente
+*.sql.bak
+
+# Compilados de Java
+bin/
+target/
+*.class
