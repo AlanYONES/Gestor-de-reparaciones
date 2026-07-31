@@ -75,5 +75,9 @@ public class Dispositivo {
 		return reparaciones;
 	}
 	
-	
+	@Override
+	public String toString() {
+		return String.format("Dispositivo #%d - Dueño: %s %s - %s -  %s %s - Imei: %s - Nro.Serie: %s", 
+								id,cliente.getNombre(), cliente.getApellido(), tipoEquipo, marca, modelo, imei, numeroSerie);
+	}
 }

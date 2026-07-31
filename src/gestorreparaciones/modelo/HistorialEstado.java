@@ -35,4 +35,9 @@ public class HistorialEstado {
 		return empleado;
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("Historial #%d -Estado: %s - Fecha: %s - Registrado por : %s "
+								, id, estado, fecha, empleado.getNombre());
+	}
 }

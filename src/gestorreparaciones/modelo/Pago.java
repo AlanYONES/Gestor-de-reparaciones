@@ -61,4 +61,10 @@ public class Pago {
 	public double montoConRecargo() {
         return monto + (monto * (recargoPorcentaje / 100.0));
     }
+	
+	@Override
+	public String toString() {
+		return String.format("Pago #%d - Monto: %%.2f - Fecha: %s - Forma de pago: %s - Tipo de pago: %s", 
+								id, montoConRecargo(),fecha, formaPago, tipoPago);
+	}
 }

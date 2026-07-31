@@ -47,5 +47,10 @@ public class RegistroListaNegra {
 		return id;
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("Registro #%d - Cliente: %s, %s - Motivo: %s - fecha: %s - Registrado por: %s",
+								id,cliente.getNombre(), cliente.getApellido(), motivo, fecha, empleadoQueRegistro.getNombre());
+	}
 	
 }

@@ -93,4 +93,10 @@ public class Cliente {
 		return this.numeroDocumento.equals(otro.getNumeroDocumento());
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("Cliente #%d - %s %s - %s: %s - Tel: %s - Correo: %s",
+								id, nombre, apellido, tipoDocumento, numeroDocumento, telefono, correo);
+				
+	}
 }
