@@ -13,6 +13,7 @@ public class Pago {
 	private LocalDate fecha;
 	private FormaDePago formaPago;
 	private TipoPago tipoPago;
+	private double recargoPorcentaje;
 	
 	public Pago(Reparacion reparacion, double monto, LocalDate fecha, FormaDePago formaPago, TipoPago tipoPago) {
 		this.id = contadorId++;
@@ -21,6 +22,7 @@ public class Pago {
 		this.fecha = fecha;
 		this.formaPago = formaPago;
 		this.tipoPago = tipoPago;
+		this.recargoPorcentaje = 0.0;
 	}
 
 	public Reparacion getReparacion() {
@@ -56,6 +58,7 @@ public class Pago {
 	public int getId() {
 		return id;
 	}
-	
-	
+	public double montoConRecargo() {
+        return monto + (monto * (recargoPorcentaje / 100.0));
+    }
 }

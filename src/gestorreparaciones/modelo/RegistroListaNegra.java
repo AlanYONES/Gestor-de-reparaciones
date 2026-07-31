@@ -2,6 +2,7 @@ package gestorreparaciones.modelo;
 
 import java.time.LocalDate;
 
+
 public class RegistroListaNegra {
 	private static int contadorId = 0;
 	private final int id;

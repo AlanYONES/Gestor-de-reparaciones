@@ -21,16 +21,15 @@ public class Reparacion {
 	private LocalDate fechaEntregaEstimada;
 	private LocalDateTime fechaEntregaFinal;
 	private double presupuesto;
-	private double recargoPorcentaje;
 	private List<Pago> pagos;
 	private List<String> rutasFotos;
 	private List<Integer> patronDesbloqueo;
 	private String pinDesbloqueo;
+	private List<HistorialEstado> historialEstados;
 	
 	public Reparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
-						String estadoFisicoAlRecibir, String observaciones, String reparacionRealizada,
-							LocalDateTime fechaEntrada, LocalDate fechaEntregaEstimada, double presupuesto, 
-								double recargoPorcentaje) {
+						String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
+						double presupuesto) {
 		this.id  = contadorId++;
 		this.dispositivo = dispositivo;
 		this.empleado = empleado;
@@ -38,13 +37,13 @@ public class Reparacion {
 		this.fallaDeclarada = fallaDeclarada;
 		this.estadoFisicoAlRecibir = estadoFisicoAlRecibir;
 		this.observaciones = observaciones;
-		this.reparacionRealizada = reparacionRealizada;
-		this.fechaEntrada = fechaEntrada;
+		this.reparacionRealizada = null;  // SE COMPLETA AL REALIZAR LA REPARACIÓN
+		this.fechaEntrada = LocalDateTime.now();
 		this.fechaEntregaEstimada = fechaEntregaEstimada;
 		this.presupuesto = presupuesto;
-		this.recargoPorcentaje = recargoPorcentaje;
 		this.pagos = new ArrayList<>();
 		this.rutasFotos = new ArrayList<>();
+		this.historialEstados = new ArrayList<>();
 	}
 
 	public Dispositivo getDispositivo() {
@@ -113,12 +112,6 @@ public class Reparacion {
 	public void setPresupuesto(double presupuesto) {
 		this.presupuesto = presupuesto;
 	}
-	public double getRecargoPorcentaje() {
-		return recargoPorcentaje;
-	}
-	public void setRecargoPorcentaje(double recargoPorcentaje) {
-		this.recargoPorcentaje = recargoPorcentaje;
-	}
 	public List<Pago> getPagos() {
 		return pagos;
 	}
@@ -140,15 +133,17 @@ public class Reparacion {
 	public int getId() {
 		return id;
 	}
-
+	public List<HistorialEstado> getHistorialEstados() {
+		return this.historialEstados;
+	}
+	
 	public double calculoTotalServicio() {
-		double recargo = this.presupuesto * (this.recargoPorcentaje / 100.0);
-		return this.presupuesto + recargo;
+		return this.presupuesto;
 	}
 	public double calcularPendiente() {
 		double totalCobrado = 0;
 		for (Pago pago : pagos) {
-			totalCobrado += pago.getMonto();
+			totalCobrado += pago.montoConRecargo();
 		}	
 		return calculoTotalServicio() - totalCobrado;
 	}

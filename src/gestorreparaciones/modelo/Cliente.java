@@ -16,6 +16,7 @@ public class Cliente {
 	private String correo;
 	private List<RegistroListaNegra> listaConflictos;
 	private List<Dispositivo> dispositivos;
+	private boolean enListaNegra;
 	
 	public Cliente(String nombre, String apellido, TipoDocumento tipoDocumento, String numeroDocumento,
 			String telefono, String correo) {
@@ -29,6 +30,7 @@ public class Cliente {
 		this.correo = correo;
 		this.listaConflictos = new ArrayList<>();
 		this.dispositivos = new ArrayList<>();
+		this.enListaNegra = false;
 	}
 	
 	public int getId() {
@@ -75,6 +77,20 @@ public class Cliente {
 	}
 	public List<Dispositivo> getDispositivos(){
 		return this.dispositivos;
+	}
+	public boolean isEnListaNegra() {
+		return this.enListaNegra;
+	}
+	public void setEnListaNegra(boolean estado) {
+		this.enListaNegra = estado;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+		Cliente otro = (Cliente) obj;
+		return this.numeroDocumento.equals(otro.getNumeroDocumento());
 	}
 	
 }
