@@ -26,7 +26,8 @@ public class Reparacion {
 	private List<Integer> patronDesbloqueo;
 	private String pinDesbloqueo;
 	private List<HistorialEstado> historialEstados;
-	
+	private boolean canceladaConCargo;
+	private double cargoRevision;
 	
 	public Reparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
 						String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
@@ -45,6 +46,7 @@ public class Reparacion {
 		this.pagos = new ArrayList<>();
 		this.rutasFotos = new ArrayList<>();
 		this.historialEstados = new ArrayList<>();
+		this.canceladaConCargo = false;
 	}
 
 	public Dispositivo getDispositivo() {
@@ -137,6 +139,19 @@ public class Reparacion {
 	public List<HistorialEstado> getHistorialEstados() {
 		return this.historialEstados;
 	}
+	public boolean isCanceladaConCargo() {
+		return this.canceladaConCargo;
+	}
+	public void setCanceladaConCargo(boolean conCargo) {
+		this.canceladaConCargo = conCargo;
+	}
+	public double getCargoRevision() {
+		return cargoRevision;
+	}
+	public void setCargoRevision(double cargoRevision) {
+		this.cargoRevision = cargoRevision;
+	}
+
 	
 	public double calculoTotalServicio() {
 		return this.presupuesto;
