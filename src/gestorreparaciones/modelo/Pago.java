@@ -15,6 +15,7 @@ public class Pago {
 	private TipoPago tipoPago;
 	private double recargoPorcentaje;
 	private boolean pagoInvalido;
+	
 	public Pago(Reparacion reparacion, double monto, LocalDate fecha, FormaDePago formaPago, TipoPago tipoPago) {
 		this.id = contadorId++;
 		this.reparacion = reparacion;

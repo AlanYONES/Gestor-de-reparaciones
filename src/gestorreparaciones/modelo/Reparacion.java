@@ -27,6 +27,7 @@ public class Reparacion {
 	private String pinDesbloqueo;
 	private List<HistorialEstado> historialEstados;
 	
+	
 	public Reparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
 						String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
 						double presupuesto) {

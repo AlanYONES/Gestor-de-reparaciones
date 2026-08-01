@@ -38,7 +38,7 @@ public class Sistema {
 		cliente.getListaConflictos().add(nuevoRegistro);
 		cliente.setEnListaNegra(true);
 	}
-	public void quitarListaNegra(Cliente cliente) {
+	public void quitarDeListaNegra(Cliente cliente) {
 		cliente.setEnListaNegra(false);
 	}
 	public List<Cliente> filtroClientesEnListaNegra(){
@@ -63,7 +63,14 @@ public class Sistema {
 							.findFirst()
 							.orElseThrow(() -> new EmpleadoNoEncontradoException("No se encontró empleado con cuit: " + cuit));
 	}
+	public void darBajaEmpleado(Empleado empleado) {
+		empleado.setActivo(false);
+	}
+	public void darAltaEmpleado(Empleado empleado) {
+		empleado.setActivo(true);
+	}
 	
+	// FUNCIONES DE DISPOSITIVOS
 	public void agregarDispositivo(Cliente cliente, Dispositivo dispositivo)throws DispositivoDuplicadoException {
 		boolean duplicado = cliente.getDispositivos().stream()
 														.anyMatch(c -> dispositivo.getImei() != null
@@ -74,6 +81,9 @@ public class Sistema {
 		cliente.getDispositivos().add(dispositivo);
 	}
 	
+	public void agregarAccesorio(Dispositivo dispositivo, String accesorio) {
+		dispositivo.getAccesorios().add(accesorio);
+	}
 	//FUNCIONES DE REPARACION
 	public Reparacion crearReparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
 										String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
@@ -102,7 +112,13 @@ public class Sistema {
 		HistorialEstado nuevoRegistro = new HistorialEstado(reparacion, nuevoEstado, empleado);
 		reparacion.getHistorialEstados().add(nuevoRegistro);
 	}
-	
+	public void aplicarPlantilla(Reparacion reparacion, PlantillaDiagnostico plantilla) {
+		reparacion.setObservaciones(plantilla.getDescripcion());
+		reparacion.setFechaEntregaEstimada(LocalDate.now().plusDays(plantilla.getDiasEstimados()));
+	}
+	public void agregarRutaFoto(String ruta, Reparacion reparacion) {
+		reparacion.getRutasFotos().add(ruta);
+	}
 	// FUNCIONES DE PAGOS
 	public void registrarPago(Reparacion reparacion, Pago pago)throws PagoInvalidoException {
 		if(pago.montoConRecargo() > reparacion.calcularPendiente() ) {
@@ -120,4 +136,6 @@ public class Sistema {
 	public void anularPago(Pago pago) {
 		pago.setPagoInvalido();
 	}
+	// FUNCIONES DE REPORTE
+	//public double totalRecaudadoPorRangoFecha()
 }
