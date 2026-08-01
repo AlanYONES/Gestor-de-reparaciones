@@ -141,10 +141,17 @@ public class Reparacion {
 		return this.presupuesto;
 	}
 	public double calcularPendiente() {
-		double totalCobrado = 0;
-		for (Pago pago : pagos) {
-			totalCobrado += pago.montoConRecargo();
-		}	
+		double totalCobrado = pagos.stream()
+									.filter(p -> !p.isPagoInvalido()) // SOLAMENTE TOMA LOS PAGOS QUE NO TENGAN LA FLAG INVALIDO ACTIVA
+									.mapToDouble(Pago::montoConRecargo)
+									.sum();
 		return calculoTotalServicio() - totalCobrado;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Orden #%d - %s %s - Estado: %s - Falla: %s - Entro: %s - Total: $%.2f - Pendiente: $.2f",
+								id, dispositivo.getMarca(), dispositivo.getModelo(), 
+								estado, fallaDeclarada, fechaEntrada, calculoTotalServicio(), calcularPendiente());
 	}
 }

@@ -38,7 +38,9 @@ public class Sistema {
 		cliente.getListaConflictos().add(nuevoRegistro);
 		cliente.setEnListaNegra(true);
 	}
-	
+	public void quitarListaNegra(Cliente cliente) {
+		cliente.setEnListaNegra(false);
+	}
 	public List<Cliente> filtroClientesEnListaNegra(){
 		return clientes.stream()
 						.filter(c -> c.isEnListaNegra())
@@ -102,9 +104,20 @@ public class Sistema {
 	}
 	
 	// FUNCIONES DE PAGOS
-	public void registrarPago(Reparacion reparacion, Pago pago) {
-		//TODO
+	public void registrarPago(Reparacion reparacion, Pago pago)throws PagoInvalidoException {
+		if(pago.montoConRecargo() > reparacion.calcularPendiente() ) {
+			throw new PagoInvalidoException("Pago invalido: supera el total de la reparacion.");
+		}
+		reparacion.getPagos().add(pago);
 	}
 	
-	
+	public double sugerirRecargo(FormaDePago pago) {
+		if(pago == FormaDePago.TARJETA) {
+			return 10.0;
+		}
+		return 0.0;
+	}
+	public void anularPago(Pago pago) {
+		pago.setPagoInvalido();
+	}
 }

@@ -14,7 +14,7 @@ public class Pago {
 	private FormaDePago formaPago;
 	private TipoPago tipoPago;
 	private double recargoPorcentaje;
-	
+	private boolean pagoInvalido;
 	public Pago(Reparacion reparacion, double monto, LocalDate fecha, FormaDePago formaPago, TipoPago tipoPago) {
 		this.id = contadorId++;
 		this.reparacion = reparacion;
@@ -23,6 +23,7 @@ public class Pago {
 		this.formaPago = formaPago;
 		this.tipoPago = tipoPago;
 		this.recargoPorcentaje = 0.0;
+		this.pagoInvalido = false;
 	}
 
 	public Reparacion getReparacion() {
@@ -61,7 +62,12 @@ public class Pago {
 	public double montoConRecargo() {
         return monto + (monto * (recargoPorcentaje / 100.0));
     }
-	
+	public void setPagoInvalido() {
+		this.pagoInvalido = true;
+	}
+	public boolean isPagoInvalido() {
+		return this.pagoInvalido;
+	}
 	@Override
 	public String toString() {
 		return String.format("Pago #%d - Monto: %%.2f - Fecha: %s - Forma de pago: %s - Tipo de pago: %s", 
