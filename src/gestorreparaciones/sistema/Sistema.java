@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -184,9 +186,24 @@ public class Sistema {
 	
 	public void cambiarEstado(Reparacion reparacion, EstadoReparacion nuevoEstado, Empleado empleado) {
 		reparacion.setEstado(nuevoEstado);
+		
+		if(nuevoEstado == EstadoReparacion.ENTREGADO) {
+			reparacion.setFechaEntregaFinal(LocalDateTime.now());
+		}
+		
 		HistorialEstado nuevoRegistro = new HistorialEstado(reparacion, nuevoEstado, empleado);
 		reparacion.getHistorialEstados().add(nuevoRegistro);
 	}
+	
+	public void asignarGarantia(Reparacion reparacion, int dias) {
+		if (reparacion.getFechaEntregaFinal() == null) {
+			throw new IllegalStateException("No se puede asignar garantia a una reparacion que no fué entregada");
+		}
+		reparacion.setTieneGarantia(true);
+		reparacion.setDiasGarantia(dias);
+		reparacion.setFechaVencimientoGarantia(reparacion.getFechaEntregaFinal().toLocalDate().plusDays(dias));
+	}
+	
 	public void aplicarPlantilla(Reparacion reparacion, PlantillaDiagnostico plantilla) {
 		reparacion.setObservaciones(plantilla.getDescripcion());
 		reparacion.setFechaEntregaEstimada(LocalDate.now().plusDays(plantilla.getDiasEstimados()));
@@ -195,9 +212,32 @@ public class Sistema {
 		reparacion.getRutasFotos().add(ruta);
 	}
 	
+	public List<GarantiaInfo> dispositivosEnGarantia(){
+		return clientes.stream()
+                  .flatMap(c -> c.getDispositivos().stream())
+                  .filter(d -> d.getReparaciones().stream()
+                                .anyMatch(r -> r.isTieneGarantia() 
+                                           && r.getFechaVencimientoGarantia().isAfter(LocalDate.now())))
+                  .map(d -> {
+                      long dias = d.getReparaciones().stream()
+                                    .filter(r -> r.isTieneGarantia() 
+                                               && r.getFechaVencimientoGarantia().isAfter(LocalDate.now()))
+                                    .map(r -> ChronoUnit.DAYS.between(LocalDate.now(), r.getFechaVencimientoGarantia()))
+                                    .max(Long::compareTo)
+                                    .orElse(0L);
+                      return new GarantiaInfo(d, dias);
+                  })
+                  .sorted(Comparator.comparingLong(GarantiaInfo::getDiasRestantes))
+                  .toList();  		
+	}
 	
-	
-	
+	public GarantiaInfo verificacionGarantia(Dispositivo dispositivo) {
+		return dispositivo.getReparaciones().stream()
+											.filter(r -> r.isTieneGarantia() && r.getFechaVencimientoGarantia().isAfter(LocalDate.now()))
+											.map(r -> new GarantiaInfo(dispositivo, ChronoUnit.DAYS.between(LocalDate.now()	, r.getFechaVencimientoGarantia())))
+											.max(Comparator.comparingLong(GarantiaInfo::getDiasRestantes))
+											.orElse(null);
+	}
 	
 	// FUNCIONES DE PAGOS
 	public void registrarPago(Reparacion reparacion, Pago pago)throws PagoInvalidoException {

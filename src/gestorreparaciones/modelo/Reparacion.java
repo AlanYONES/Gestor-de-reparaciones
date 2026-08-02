@@ -26,6 +26,9 @@ public class Reparacion {
 	private List<Integer> patronDesbloqueo;
 	private String pinDesbloqueo;
 	private List<HistorialEstado> historialEstados;
+	private boolean tieneGarantia;
+	private int diasGarantia;
+	private LocalDate fechaVencimientoGarantia;
 	private boolean canceladaConCargo;
 	private double cargoRevision;
 	
@@ -138,6 +141,24 @@ public class Reparacion {
 	}
 	public List<HistorialEstado> getHistorialEstados() {
 		return this.historialEstados;
+	}
+	public boolean isTieneGarantia() {
+		return tieneGarantia;
+	}
+	public void setTieneGarantia(boolean tieneGarantia) {
+		this.tieneGarantia = tieneGarantia;
+	}
+	public int getDiasGarantia() {
+		return diasGarantia;
+	}
+	public void setDiasGarantia(int diasGarantia) {
+		this.diasGarantia = diasGarantia;
+	}
+	public LocalDate getFechaVencimientoGarantia() {
+		return fechaVencimientoGarantia;
+	}
+	public void setFechaVencimientoGarantia(LocalDate fechaVencimientoGarantia) {
+		this.fechaVencimientoGarantia = fechaVencimientoGarantia;
 	}
 	public boolean isCanceladaConCargo() {
 		return this.canceladaConCargo;
