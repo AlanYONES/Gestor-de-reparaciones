@@ -33,18 +33,15 @@ public class Reparacion {
 	private double cargoRevision;
 	
 	public Reparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
-						String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
-						double presupuesto) {
+						String estadoFisicoAlRecibir, double presupuesto) {
 		this.id  = contadorId++;
 		this.dispositivo = dispositivo;
 		this.empleado = empleado;
 		this.estado = EstadoReparacion.RECIBIDO;
 		this.fallaDeclarada = fallaDeclarada;
 		this.estadoFisicoAlRecibir = estadoFisicoAlRecibir;
-		this.observaciones = observaciones;
 		this.reparacionRealizada = null;  // SE COMPLETA AL REALIZAR LA REPARACIÓN
 		this.fechaEntrada = LocalDateTime.now();
-		this.fechaEntregaEstimada = fechaEntregaEstimada;
 		this.presupuesto = presupuesto;
 		this.pagos = new ArrayList<>();
 		this.rutasFotos = new ArrayList<>();
@@ -175,20 +172,24 @@ public class Reparacion {
 
 	
 	public double calculoTotalServicio() {
+		if(estado == EstadoReparacion.CANCELADA) {
+			return canceladaConCargo ? cargoRevision : 0.0;
+		}
 		return this.presupuesto;
 	}
 	public double calcularPendiente() {
 		double totalCobrado = pagos.stream()
 									.filter(p -> !p.isPagoInvalido()) // SOLAMENTE TOMA LOS PAGOS QUE NO TENGAN LA FLAG INVALIDO ACTIVA
-									.mapToDouble(Pago::montoConRecargo)
+									.mapToDouble(Pago::getMonto)
 									.sum();
 		return calculoTotalServicio() - totalCobrado;
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("Orden #%d - %s %s - Estado: %s - Falla: %s - Entro: %s - Total: $%.2f - Pendiente: $.2f",
+		return String.format("Orden #%d - %s %s - Estado: %s - Falla: %s - Entro: %s- Observaciones: %s - "
+				+ "Entrega aproximada: %s - Total: $%.2f - Pendiente: $%.2f",
 								id, dispositivo.getMarca(), dispositivo.getModelo(), 
-								estado, fallaDeclarada, fechaEntrada, calculoTotalServicio(), calcularPendiente());
+								estado, fallaDeclarada, fechaEntrada,observaciones,fechaEntregaEstimada, calculoTotalServicio(), calcularPendiente());
 	}
 }

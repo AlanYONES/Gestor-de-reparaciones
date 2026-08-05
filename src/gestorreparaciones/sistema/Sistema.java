@@ -36,6 +36,10 @@ public class Sistema {
 	}
 	
 	
+	public void imprimirLista(List<?> lista) {
+	    lista.forEach(System.out::println);
+	}
+	
 	//FUNCIONES RELACIONADAS A CLASE CLIENTE
 	public void agregarCliente(Cliente cliente)throws ClienteYaExistenteException{
 		for(Cliente c : clientes) {
@@ -140,6 +144,20 @@ public class Sistema {
 		cliente.getDispositivos().add(dispositivo);
 	}
 	
+	public List<Dispositivo> buscarDispositivoPorModelo(String modelo) {
+		return clientes.stream()
+						.flatMap(c -> c.getDispositivos().stream())
+						.filter(d -> d.getModelo().equalsIgnoreCase(modelo))
+						.collect(Collectors.toList());
+	}
+	public Dispositivo buscarDispositivoPorImei(String imei)throws DispositivoNoEncontradoException {
+		return clientes.stream()
+						.flatMap(c -> c.getDispositivos().stream())
+						.filter(d ->d.getImei() != null && d.getImei().equals(imei))
+						.findFirst()
+						.orElseThrow(() -> new DispositivoNoEncontradoException("No se encontró dispositivo con imei: " + imei));
+	}
+	
 	public void agregarAccesorio(Dispositivo dispositivo, String accesorio) {
 		dispositivo.getAccesorios().add(accesorio);
 	}
@@ -149,14 +167,12 @@ public class Sistema {
 	
 	//FUNCIONES DE REPARACION
 	public Reparacion crearReparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
-										String estadoFisicoAlRecibir, String observaciones, LocalDate fechaEntregaEstimada, 
-											double presupuesto)throws EmpleadoInactivoException {
+										String estadoFisicoAlRecibir, double presupuesto)throws EmpleadoInactivoException {
 		if(!empleado.isActivo()) {
-			throw new EmpleadoInactivoException("El empleado " + empleado.getNombre() + " no está activo y no puede recibir reparaciones.");
+			throw new EmpleadoInactivoException(" El empleado " + empleado.getNombre() + " no está activo y no puede recibir reparaciones.");
 		}
 		Reparacion retorno = new Reparacion(dispositivo, empleado, fallaDeclarada, 
-												estadoFisicoAlRecibir, observaciones, 
-													fechaEntregaEstimada, presupuesto);
+												estadoFisicoAlRecibir , presupuesto);
 		dispositivo.getReparaciones().add(retorno);
 		return retorno;
 	}
@@ -182,6 +198,15 @@ public class Sistema {
 						.flatMap(c -> c.getDispositivos().stream())
 						.flatMap(d -> d.getReparaciones().stream())
 						.collect(Collectors.groupingBy(Reparacion::getEstado, Collectors.counting()));
+	}
+	
+	public Reparacion buscarReparacionPorId(int id) throws ReparacionNoEncontradaException{
+		return clientes.stream()
+						.flatMap(c -> c.getDispositivos().stream())
+						.flatMap(d -> d.getReparaciones().stream())
+						.filter(r -> r.getId() == id)
+						.findFirst()
+						.orElseThrow(() -> new ReparacionNoEncontradaException("No se encontro la reparacion con orden n°: " + id));
 	}
 	
 	public void cambiarEstado(Reparacion reparacion, EstadoReparacion nuevoEstado, Empleado empleado) {
@@ -241,7 +266,7 @@ public class Sistema {
 	
 	// FUNCIONES DE PAGOS
 	public void registrarPago(Reparacion reparacion, Pago pago)throws PagoInvalidoException {
-		if(pago.montoConRecargo() > reparacion.calcularPendiente() ) {
+		if(pago.getMonto() > reparacion.calcularPendiente() ) {
 			throw new PagoInvalidoException("Pago invalido: supera el total de la reparacion.");
 		}
 		reparacion.getPagos().add(pago);
@@ -269,12 +294,7 @@ public class Sistema {
 						.flatMap(d -> d.getReparaciones().stream())
 						.filter(r -> !r.getFechaEntrada().toLocalDate().isBefore(desde)
 									&& !r.getFechaEntrada().toLocalDate().isAfter(hasta))
-						.mapToDouble(r -> {
-							if (r.getEstado() == EstadoReparacion.CANCELADA) {
-								return r.isCanceladaConCargo() ? r.getCargoRevision() : 0.0;
-							}
-							return r.calculoTotalServicio();
-						})
+						.mapToDouble(Reparacion::calculoTotalServicio)
 						.sum();
 	}
 	

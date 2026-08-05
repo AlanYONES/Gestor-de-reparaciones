@@ -57,6 +57,12 @@ public class Pago {
 	public void setTipoPago(TipoPago tipoPago) {
 		this.tipoPago = tipoPago;
 	}
+	public double getRecargoPorcentaje() {
+		return recargoPorcentaje;
+	}
+	public void setRecargoPorcentaje(double recargoPorcentaje) {
+		this.recargoPorcentaje = recargoPorcentaje;
+	}
 	public int getId() {
 		return id;
 	}
