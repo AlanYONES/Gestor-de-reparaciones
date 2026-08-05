@@ -109,7 +109,7 @@ public class Sistema {
 											.orElse(null);
 	}
 	
-	public List<Empleado> ListadoEmpleadosPorReparacionesAscendente(){
+	public List<Empleado> listadoEmpleadosPorReparacionesAscendente(){
 		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
 														.flatMap(c -> c.getDispositivos().stream())
 														.flatMap(d -> d.getReparaciones().stream())
@@ -120,7 +120,7 @@ public class Sistema {
 											.toList();
 	}
 	
-	public List<Empleado> ListadoEmpleadosPorReparacionesDescendente(){
+	public List<Empleado> listadoEmpleadosPorReparacionesDescendente(){
 		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
 														.flatMap(c -> c.getDispositivos().stream())
 														.flatMap(d -> d.getReparaciones().stream())
@@ -198,6 +198,13 @@ public class Sistema {
 						.flatMap(c -> c.getDispositivos().stream())
 						.flatMap(d -> d.getReparaciones().stream())
 						.collect(Collectors.groupingBy(Reparacion::getEstado, Collectors.counting()));
+	}
+	
+	public List<Reparacion> listaReparacionesPorCliente(String dni) throws ClienteNoEncontradoException{
+		Cliente cliente = buscarCliente(dni);
+		return cliente.getDispositivos().stream()
+										.flatMap(d -> d.getReparaciones().stream())
+										.toList();
 	}
 	
 	public Reparacion buscarReparacionPorId(int id) throws ReparacionNoEncontradaException{

@@ -4,6 +4,7 @@ import gestorreparaciones.sistema.Sistema;
 import gestorreparaciones.modelo.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
@@ -70,6 +71,8 @@ public class Main {
 		}*/
 		
 		// CREO REPARACION CON EMPLEADO INACTIVO
+		Empleado empleado3 = new Empleado("Carlos", "23222222229",RolEmpleado.TECNICO, true);
+
 		Empleado empleado2 = new Empleado("Carlos", "23222222229",RolEmpleado.TECNICO, false);
 		try {
 			Reparacion reparacion2 = sistema.crearReparacion(dispositivo1, empleado2, "PRUEBA", "PRUEBA", 1.0);
@@ -201,10 +204,107 @@ public class Main {
 			} catch (EmpleadoInactivoException e) {
 				System.out.println("Exception" + e.getMessage());
 			}
-		sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.RECIBIDO));
-		sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.ENTREGADO));
-		sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.CANCELADA));
-		//sistema.imprimirLista(sistema.);
+		//sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.RECIBIDO));
+		//sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.ENTREGADO));
+		//sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.CANCELADA));
+
+		// LISTADO REPARACIONES POR CLIENTE
+		try {
+			sistema.imprimirLista(sistema.listaReparacionesPorCliente("11111111"));
+		}catch(ClienteNoEncontradoException e) {
+			System.out.println("Exception" + e.getMessage());
+		}
+		// PRUEBAS REPARACIONES VENCIDAS
+
+
+		PlantillaDiagnostico plantillaDiagnosticoGeneral = new PlantillaDiagnostico("Recepción completa / diagnóstico inicial",
+				"Cliente solicita diagnóstico técnico general antes de autorizar reparación o cambio de pieza",2);
+
+		PlantillaDiagnostico plantillaCambioDeBateria = new PlantillaDiagnostico("Cambio de batería", 
+				"Reemplazo de batería original/genérica, incluye testeo de carga y autonomía",1);
+		try {
+		    // Reparación vencida 1: estimada en el pasado, sigue RECIBIDO
+		    Reparacion reparacion1 = sistema.crearReparacion(dispositivo1, empleado1, "No da imagen, solo lineas verticales",
+		                                                        "Pantalla astillada, no usable, carga (1.2A)", 60000.0);
+		    sistema.aplicarPlantilla(reparacion1, plantillaCambioDePantallaOled);
+		    reparacion1.setFechaEntregaEstimada(LocalDate.of(2026, 1, 10));   // fecha en el pasado
+		    System.out.println(reparacion1);
+
+		    // Reparación vencida 2: estimada en el pasado, sigue EN_REPARACION
+		    Reparacion reparacion2 = sistema.crearReparacion(dispositivo2, empleado3, "No enciende",
+		                                                        "Golpes visibles en carcasa", 45000.0);
+		    sistema.aplicarPlantilla(reparacion2, plantillaDiagnosticoGeneral);
+		    reparacion2.setFechaEntregaEstimada(LocalDate.of(2026, 1, 15));   // fecha en el pasado
+		    sistema.cambiarEstado(reparacion2, EstadoReparacion.EN_REPARACION, empleado1);
+		    System.out.println(reparacion2);
+
+		    // Control 1: estimada en el pasado, pero YA ENTREGADA -> no debería aparecer como vencida
+		    Reparacion reparacion3 = sistema.crearReparacion(dispositivo1, empleado3, "Bateria se agota muy rapido",
+		                                                        "Bateria hinchada", 35000.0);
+		    sistema.aplicarPlantilla(reparacion3, plantillaCambioDeBateria);
+		    reparacion3.setFechaEntregaEstimada(LocalDate.of(2026, 1, 20));   // fecha en el pasado
+		    sistema.cambiarEstado(reparacion3, EstadoReparacion.ENTREGADO, empleado3);
+		    System.out.println(reparacion3);
+
+		    // Control 2: estimada en el futuro, sigue RECIBIDO -> no debería aparecer como vencida
+		    Reparacion reparacion4 = sistema.crearReparacion(dispositivo2, empleado2, "Se moja, no prende",
+		                                                        "Manchas de humedad", 50000.0);
+		    sistema.aplicarPlantilla(reparacion4, plantillaDiagnosticoGeneral);
+		    reparacion4.setFechaEntregaEstimada(LocalDate.now().plusDays(5));   // fecha futura
+		    System.out.println(reparacion4);
+
+		    // Ahora sí, corremos el reporte
+		    System.out.println("\n--- Reparaciones vencidas ---");
+		    sistema.imprimirLista(sistema.reparacionesVencidas());
+
+		} catch (EmpleadoInactivoException e) {
+		    System.out.println("Exception: " + e.getMessage());
+		}
+		
+		// CANTIDAD DE REPARACIONES POR ESTADO
+		System.out.println(sistema.cantidadReparacionesPorEstado());
+		// EMPLEADOS ORDENADOS POR REPARACIONES | ASCENDENTE Y DESCENDENTE
+		sistema.imprimirLista(sistema.listadoEmpleadosPorReparacionesAscendente());
+		sistema.imprimirLista(sistema.listadoEmpleadosPorReparacionesDescendente());
+
+		// 	DISPOSITIVOS EN GARANTIA 
+		try {
+		    // Caso 1: garantía vigente, vence en varios días (debería aparecer)
+		    Reparacion reparacionA = sistema.crearReparacion(dispositivo1, empleado1, "Pantalla no responde al tacto",
+		                                                        "Pantalla con roturas leves", 55000.0);
+		    sistema.aplicarPlantilla(reparacionA, plantillaCambioDePantallaOled);
+		    sistema.cambiarEstado(reparacionA, EstadoReparacion.ENTREGADO, empleado1);
+		    sistema.asignarGarantia(reparacionA, 30);
+		    System.out.println(reparacionA);
+
+		    // Caso 2: garantía vigente, vence pronto (debería aparecer, con menos días restantes)
+		    Reparacion reparacionB = sistema.crearReparacion(dispositivo2, empleado1, "Bateria se agota rapido",
+		                                                        "Bateria hinchada", 35000.0);
+		    sistema.aplicarPlantilla(reparacionB, plantillaCambioDeBateria);
+		    sistema.cambiarEstado(reparacionB, EstadoReparacion.ENTREGADO, empleado1);
+		    sistema.asignarGarantia(reparacionB, 5);   // pocos días, para verificar el orden ascendente
+		    System.out.println(reparacionB);
+
+		    // Caso 3: garantía YA VENCIDA (no debería aparecer en el listado)
+		    Reparacion reparacionC = sistema.crearReparacion(dispositivo1, empleado1, "No enciende",
+		                                                        "Golpes visibles en carcasa", 45000.0);
+		    sistema.aplicarPlantilla(reparacionC, plantillaDiagnosticoGeneral);
+		    sistema.cambiarEstado(reparacionC, EstadoReparacion.ENTREGADO, empleado1);
+		    reparacionC.setFechaEntregaFinal(LocalDateTime.now().minusDays(40));   // se entregó hace 40 días
+		    sistema.asignarGarantia(reparacionC, 30);   // vencería a los 30, ya pasó
+		    System.out.println(reparacionC);
+
+		    // Corremos el reporte
+		    System.out.println("\n--- Dispositivos en garantía ---");
+		    sistema.imprimirLista(sistema.dispositivosEnGarantia());
+
+		    // Y la verificación puntual sobre un dispositivo específico
+		    System.out.println("\n--- Verificación puntual dispositivo1 ---");
+		    System.out.println(sistema.verificacionGarantia(dispositivo1));
+
+		} catch (EmpleadoInactivoException e) {
+		    System.out.println("Exception: " + e.getMessage());
+		}
 	}
 	
 }
