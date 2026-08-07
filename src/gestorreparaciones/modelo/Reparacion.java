@@ -179,7 +179,7 @@ public class Reparacion {
 	}
 	public double calcularPendiente() {
 		double totalCobrado = pagos.stream()
-									.filter(p -> !p.isPagoInvalido()) // SOLAMENTE TOMA LOS PAGOS QUE NO TENGAN LA FLAG INVALIDO ACTIVA
+									.filter(p -> !p.isPagoAnulado()) // SOLAMENTE TOMA LOS PAGOS QUE NO TENGAN LA FLAG INVALIDO ACTIVA
 									.mapToDouble(Pago::getMonto)
 									.sum();
 		return calculoTotalServicio() - totalCobrado;

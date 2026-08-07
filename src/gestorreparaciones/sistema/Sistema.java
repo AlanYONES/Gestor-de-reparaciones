@@ -286,7 +286,7 @@ public class Sistema {
 		return 0.0;
 	}
 	public void anularPago(Pago pago) {
-		pago.setPagoInvalido();
+		pago.setAnularPago();
 	}
 	public List<Pago> buscarPagosPorReparacion(Reparacion reparacion){
 		return reparacion.getPagos();

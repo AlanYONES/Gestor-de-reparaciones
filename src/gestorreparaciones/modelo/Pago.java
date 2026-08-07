@@ -14,7 +14,7 @@ public class Pago {
 	private FormaDePago formaPago;
 	private TipoPago tipoPago;
 	private double recargoPorcentaje;
-	private boolean pagoInvalido;
+	private boolean anulado;
 	
 	public Pago(Reparacion reparacion, double monto, LocalDate fecha, FormaDePago formaPago, TipoPago tipoPago) {
 		this.id = contadorId++;
@@ -24,7 +24,7 @@ public class Pago {
 		this.formaPago = formaPago;
 		this.tipoPago = tipoPago;
 		this.recargoPorcentaje = 0.0;
-		this.pagoInvalido = false;
+		this.anulado = false;
 	}
 
 	public Reparacion getReparacion() {
@@ -69,11 +69,11 @@ public class Pago {
 	public double montoConRecargo() {
         return monto + (monto * (recargoPorcentaje / 100.0));
     }
-	public void setPagoInvalido() {
-		this.pagoInvalido = true;
+	public void setAnularPago() {
+		this.anulado = true;
 	}
-	public boolean isPagoInvalido() {
-		return this.pagoInvalido;
+	public boolean isPagoAnulado() {
+		return this.anulado;
 	}
 	@Override
 	public String toString() {
