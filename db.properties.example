@@ -1,0 +1,3 @@
+db.url=jdbc:mysql://localhost:3306/gestor_reparaciones
+db.usuario=TU_USUARIO_AQUI
+db.password=TU_CONTRASEÑA_AQUI
