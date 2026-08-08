@@ -1,5 +1,6 @@
 package gestorreparaciones.pruebas;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -79,7 +80,7 @@ public class Main {
                                                      "111", "otro@mail.com");
             sistema.agregarCliente(clienteDuplicado);
 
-        } catch (ClienteYaExistenteException | DispositivoDuplicadoException e) {
+        } catch (ClienteYaExistenteException | DispositivoDuplicadoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
 
@@ -162,6 +163,7 @@ public class Main {
         // =========================================================
         // 6. LISTA NEGRA
         // =========================================================
+       try {
         sistema.marcarListaNegra(cliente1, "No retira equipos hace más de 6 meses", empleado1);
         System.out.println("\n--- Cliente en lista negra ---");
         sistema.imprimirLista(sistema.filtroClientesEnListaNegra());
@@ -170,7 +172,9 @@ public class Main {
         System.out.println("¿Sigue en lista negra? " + cliente1.isEnListaNegra());
         System.out.println("Historial de conflictos (se mantiene): ");
         sistema.imprimirLista(cliente1.getListaConflictos());
-        
+       }catch (SQLException e) {
+    	   System.out.println("Exception esperada: " + e.getMessage());
+       }
         // =========================================================
         // 7. CANCELACIÓN DE REPARACIONES (con y sin cargo)
         // =========================================================
@@ -199,7 +203,7 @@ public class Main {
             System.out.println("\n--- Búsquedas ---");
             System.out.println(sistema.buscarCliente("30111222"));
             sistema.buscarCliente("00000000"); // no encontrado
-        } catch (ClienteNoEncontradoException e) {
+        } catch (ClienteNoEncontradoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
 
@@ -245,7 +249,7 @@ public class Main {
         try {
             System.out.println("\n--- Reparaciones del cliente1 ---");
             sistema.imprimirLista(sistema.listaReparacionesPorCliente("30111222"));
-        } catch (ClienteNoEncontradoException e) {
+        } catch (ClienteNoEncontradoException | SQLException e) {
             System.out.println("Exception: " + e.getMessage());
         }
 

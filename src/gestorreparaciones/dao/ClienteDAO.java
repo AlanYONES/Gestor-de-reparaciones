@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import gestorreparaciones.conexion.ConexionDB;
 import gestorreparaciones.enums.TipoDocumento;
@@ -56,6 +58,47 @@ public class ClienteDAO {
 		return null;
 	}
 	
+	public Cliente buscarPorDocumento(String documento) throws SQLException{
+		String sql ="SELECT id, nombre, apellido, tipo_documento, numero_documento, "
+				+ "telefono, correo, en_lista_negra "
+				+ "FROM clientes "
+				+ "WHERE numero_documento = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			
+			stmt.setString(1,documento);
+			try(ResultSet rs = stmt.executeQuery()){
+				if(rs.next()) {
+					return mapearCliente(rs);
+				}
+			}
+		}
+		return null;
+	}
+	
+	public List<Cliente> filtroPorListaNegra() throws SQLException{
+	    String sql = "SELECT id, nombre, apellido, tipo_documento, numero_documento, "
+	               + "telefono, correo, en_lista_negra "
+	               + "FROM clientes "
+	               + "WHERE en_lista_negra = TRUE";
+	    
+		List<Cliente> clientes = new ArrayList<>();
+		
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			
+			try(ResultSet rs = stmt.executeQuery()){
+				
+				while(rs.next()) {
+					
+					clientes.add(mapearCliente(rs));
+					
+				}
+			}
+		}
+		return clientes;
+	}
+	
 	public Cliente mapearCliente(ResultSet rs) throws SQLException{
 	    Cliente cliente = new Cliente(
 	            rs.getString("nombre"),
@@ -69,4 +112,72 @@ public class ClienteDAO {
 	    cliente.setEnListaNegra(rs.getBoolean("en_lista_negra"));
 	    return cliente;
 	}
+	
+	public List<Cliente> buscarTodos() throws SQLException{
+		String sql ="SELECT id, nombre, apellido, tipo_documento, numero_documento, "
+				+ "telefono, correo, en_lista_negra "
+				+ "FROM clientes";
+		List<Cliente> clientes = new ArrayList<>();
+		try (Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					clientes.add(mapearCliente(rs));
+				}
+			}
+		}
+		return clientes;
+	}
+	
+	public void actualizar (Cliente cliente) throws SQLException {
+		String sql = "UPDATE clientes SET nombre = ?, "
+				+ "apellido = ?, "
+				+ "tipo_documento = ?, "
+				+ "numero_documento = ?, "
+				+ "telefono = ?, "
+				+ "correo = ?, "
+				+ "en_lista_negra = ? "
+	            + "WHERE id = ?";
+		
+		try (Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, cliente.getNombre());
+            stmt.setString(2, cliente.getApellido());
+            stmt.setString(3, cliente.getTipoDocumento().name());
+            stmt.setString(4, cliente.getNumeroDocumento());
+            stmt.setString(5, cliente.getTelefono());
+            stmt.setString(6, cliente.getCorreo());
+            stmt.setBoolean(7, cliente.isEnListaNegra());
+            stmt.setInt(8, cliente.getId());
+            stmt.executeUpdate();
+		}
+	}
+	
+	public boolean existePorDocumento(String documento) throws SQLException{
+		String sql ="SELECT id"
+				+ "FROM clientes "
+				+ "WHERE numero_documento = ?";
+		try (Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			
+			stmt.setString(1, documento);
+			
+			try(ResultSet rs = stmt.executeQuery()){
+				return rs.next();
+			}
+		}
+	}
+	
+	public void quitarListaNegra(Cliente cliente)throws SQLException{
+		String sql = "UPDATE clientes SET en_lista_negra = FALSE "
+				+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setInt(1, cliente.getId());
+			stmt.executeUpdate();
+		}
+	}
+	
+	// public void marcarListaNegra(Cliente cliente) REQUIERE HISTORIAL_LISTA_NEGRADAO
+	
 }

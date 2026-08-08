@@ -2,6 +2,7 @@ package gestorreparaciones.sistema;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import gestorreparaciones.modelo.*;
+import gestorreparaciones.dao.ClienteDAO;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
 
@@ -41,21 +43,23 @@ public class Sistema {
 	}
 	
 	//FUNCIONES RELACIONADAS A CLASE CLIENTE
-	public void agregarCliente(Cliente cliente)throws ClienteYaExistenteException{
-		for(Cliente c : clientes) {
-			if(c.equals(cliente)) {
+	public void agregarCliente(Cliente cliente)throws ClienteYaExistenteException, SQLException{
+		ClienteDAO dao = new ClienteDAO();
+		
+			if(dao.existePorDocumento(cliente.getNumeroDocumento())) {
 				throw new ClienteYaExistenteException("Ya existe un cliente con documento " + cliente.getNumeroDocumento(), " Documento duplicado.");
 			}
-		}
-		clientes.add(cliente);
+		dao.guardar(cliente);
 	}
 	
 	
-	public Cliente buscarCliente(String dni)throws ClienteNoEncontradoException {
-		return clientes.stream()
-						.filter(c -> c.getNumeroDocumento().equals(dni))
-						.findFirst()
-						.orElseThrow(() -> new ClienteNoEncontradoException("No se encontro cliente con documento: " + dni));
+	public Cliente buscarCliente(String dni)throws ClienteNoEncontradoException, SQLException {
+		ClienteDAO dao = new ClienteDAO();
+		Cliente cliente = dao.buscarPorDocumento(dni);
+		if(cliente != null) {
+			return cliente;
+		}
+		throw new ClienteNoEncontradoException("No se encuentra cliente con documento: " + dni);
 	}
 	
 	public void marcarListaNegra(Cliente cliente, String motivo,Empleado empleado) {
@@ -63,13 +67,14 @@ public class Sistema {
 		cliente.getListaConflictos().add(nuevoRegistro);
 		cliente.setEnListaNegra(true);
 	}
-	public void quitarDeListaNegra(Cliente cliente) {
+	public void quitarDeListaNegra(Cliente cliente) throws SQLException {
 		cliente.setEnListaNegra(false);
+		ClienteDAO dao = new ClienteDAO();
+		dao.quitarListaNegra(cliente);
 	}
-	public List<Cliente> filtroClientesEnListaNegra(){
-		return clientes.stream()
-						.filter(c -> c.isEnListaNegra())
-						.collect(Collectors.toList());
+	public List<Cliente> filtroClientesEnListaNegra() throws SQLException{
+		ClienteDAO dao = new ClienteDAO();
+		return dao.filtroPorListaNegra();
 	}
 	
 	
@@ -200,7 +205,7 @@ public class Sistema {
 						.collect(Collectors.groupingBy(Reparacion::getEstado, Collectors.counting()));
 	}
 	
-	public List<Reparacion> listaReparacionesPorCliente(String dni) throws ClienteNoEncontradoException{
+	public List<Reparacion> listaReparacionesPorCliente(String dni) throws ClienteNoEncontradoException, SQLException{
 		Cliente cliente = buscarCliente(dni);
 		return cliente.getDispositivos().stream()
 										.flatMap(d -> d.getReparaciones().stream())
