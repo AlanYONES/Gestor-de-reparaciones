@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import gestorreparaciones.enums.TipoDocumento;
 
 public class Cliente {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private String nombre;
 	private String apellido;
 	private TipoDocumento tipoDocumento;
@@ -21,7 +20,7 @@ public class Cliente {
 	public Cliente(String nombre, String apellido, TipoDocumento tipoDocumento, String numeroDocumento,
 			String telefono, String correo) {
 		super();
-		this.id = contadorId++;
+		this.id = -1;
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.tipoDocumento = tipoDocumento;
@@ -35,6 +34,9 @@ public class Cliente {
 	
 	public int getId() {
 		return this.id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	public String getNombre() {
 		return this.nombre;
