@@ -35,7 +35,7 @@ replay_pid*
 
 # Credenciales / config local
 *.properties
-!application.properties.example
+!db.properties.example
 config/db.properties
 
 # MySQL dumps si los generás localmente
