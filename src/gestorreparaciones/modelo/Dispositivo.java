@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import gestorreparaciones.enums.TipoEquipo;
 
 public class Dispositivo {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private Cliente cliente;
 	private TipoEquipo tipoEquipo;
 	private String marca;
@@ -18,7 +17,7 @@ public class Dispositivo {
 	private List<Reparacion> reparaciones;
 	
 	public Dispositivo(Cliente cliente, TipoEquipo tipoEquipo, String marca, String modelo, String imei, String numeroSerie) {
-		this.id = contadorId++;
+		this.id = -1;
 		this.cliente = cliente;
 		this.tipoEquipo = tipoEquipo;
 		this.marca = marca;
@@ -67,6 +66,9 @@ public class Dispositivo {
 	}
 	public int getId() {
 		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	public List<String> getAccesorios() {
 		return accesorios;

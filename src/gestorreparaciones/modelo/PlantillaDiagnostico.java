@@ -1,14 +1,13 @@
 package gestorreparaciones.modelo;
 
 public class PlantillaDiagnostico {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private String nombre;
 	private String descripcion;
 	private int diasEstimados;
 	
 	public PlantillaDiagnostico(String nombre, String descripcion, int diasEstimados) {
-		this.id = contadorId++;
+		this.id = -1;
 		this.nombre = nombre;
 		this.descripcion = descripcion;
 		this.diasEstimados = diasEstimados;
@@ -34,6 +33,9 @@ public class PlantillaDiagnostico {
 	}
 	public int getId() {
 		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 	

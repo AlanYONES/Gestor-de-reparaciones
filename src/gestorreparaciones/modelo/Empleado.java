@@ -2,15 +2,14 @@ package gestorreparaciones.modelo;
 import gestorreparaciones.enums.RolEmpleado;
 
 public class Empleado {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private String nombre;
 	private String cuit;
 	private RolEmpleado rol;
 	private boolean activo;
 	
-	public Empleado(String nombre, String cuit,RolEmpleado rol, boolean activo) {
-		this.id = contadorId++;
+	public Empleado(String nombre, String cuit,RolEmpleado rol) {
+		this.id = -1;
 		this.nombre = nombre;
 		this.cuit = cuit;
 		this.rol = rol;
@@ -44,7 +43,9 @@ public class Empleado {
 	public int getId() {
 		return id;
 	}
-	
+	public void setId(int id) {
+		this.id = id;
+	}
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import gestorreparaciones.modelo.*;
 import gestorreparaciones.dao.ClienteDAO;
+import gestorreparaciones.dao.EmpleadoDAO;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
 
@@ -27,11 +28,13 @@ public class Sistema {
 		this.plantillasDiagnostico = new ArrayList<>();
 	}
 	
-	public List<Cliente> getClientes(){
-		return new ArrayList<>(clientes);
+	public List<Cliente> getClientes() throws SQLException{
+		ClienteDAO dao = new ClienteDAO();
+		return dao.buscarTodos();
 	}
-	public List<Empleado> getEmpleados(){
-		return new ArrayList<>(empleados);
+	public List<Empleado> getEmpleados() throws SQLException{
+		EmpleadoDAO dao = new EmpleadoDAO();
+		return dao.buscarTodos();
 	}
 	public List<PlantillaDiagnostico> getPlantillas(){
 		return new ArrayList<>(plantillasDiagnostico);
@@ -81,28 +84,34 @@ public class Sistema {
 	
 	
 	//FUNCIONES RELACIONADAS A CLASE EMPLEADO
-	public void agregarEmpleado(Empleado empleado)throws EmpleadoYaExistenteException {
-		for(Empleado e : empleados) {
-			if(e.equals(empleado)) {
-				throw new EmpleadoYaExistenteException("Ya existe un empleado con cuit: " + empleado.getCuit());
-			}
+	public void agregarEmpleado(Empleado empleado)throws EmpleadoYaExistenteException, SQLException {
+		EmpleadoDAO dao = new EmpleadoDAO();
+		
+		if(dao.existePorCuit(empleado.getCuit())) {
+			throw new EmpleadoYaExistenteException("Ya existe empleado con el cuit: " + empleado.getCuit());
 		}
-		empleados.add(empleado);
+		dao.guardar(empleado);
 	}
 	
-	public Empleado buscarEmpleado(String cuit)throws EmpleadoNoEncontradoException {
-		return empleados.stream()
-							.filter(c -> c.getCuit().equals(cuit))
-							.findFirst()
-							.orElseThrow(() -> new EmpleadoNoEncontradoException("No se encontró empleado con cuit: " + cuit));
+	public Empleado buscarEmpleado(String cuit)throws EmpleadoNoEncontradoException, SQLException {
+		EmpleadoDAO dao = new EmpleadoDAO();
+		Empleado empleado = dao.buscarPorCuit(cuit);
+		if(empleado != null) return empleado;
+		throw new EmpleadoNoEncontradoException ("No se encuentra empleado con cuit : " + cuit);
 	}
-	public void darBajaEmpleado(Empleado empleado) {
+	public void darBajaEmpleado(Empleado empleado) throws SQLException {
 		empleado.setActivo(false);
+		EmpleadoDAO dao = new EmpleadoDAO();
+		dao.cambiarActivo(empleado.getId(), false);
 	}
-	public void darAltaEmpleado(Empleado empleado) {
+	public void darAltaEmpleado(Empleado empleado) throws SQLException {
 		empleado.setActivo(true);
+		EmpleadoDAO dao = new EmpleadoDAO();
+		dao.cambiarActivo(empleado.getId(), true);
 	}
 	
+	
+	// LAS FUNCIONES RELACIONADAS A REPARACIONES DE EMPLEADO ESPERAN A MUDA A DAO DE CLASE REPARACIONES
 	public Empleado empleadoConMasReparaciones() {
 		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
 															.flatMap(c -> c.getDispositivos().stream())

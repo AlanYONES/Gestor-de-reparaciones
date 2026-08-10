@@ -27,11 +27,10 @@ public class Main {
         PlantillaDiagnostico plantillaCambioDeBateria = null;
 
         try {
-            empleado1 = new Empleado("Juan Pérez", "20304050607", RolEmpleado.TECNICO, true);
-            empleado2 = new Empleado("Ana García", "20405060708", RolEmpleado.TECNICO, true);
+            empleado1 = new Empleado("Juan Pérez", "20304050607", RolEmpleado.TECNICO);
+            empleado2 = new Empleado("Ana García", "20405060708", RolEmpleado.TECNICO);
             sistema.agregarEmpleado(empleado1);
             sistema.agregarEmpleado(empleado2);
-
             plantillaCambioDePantallaOled = new PlantillaDiagnostico(
                 "Cambio de pantalla OLED",
                 "Reemplazo de módulo de pantalla OLED completo, incluye testeo táctil y de brillo", 3);
@@ -45,7 +44,7 @@ public class Main {
             System.out.println("--- Setup completo ---");
             sistema.imprimirLista(sistema.getEmpleados());
 
-        } catch (EmpleadoYaExistenteException e) {
+        } catch (EmpleadoYaExistenteException | SQLException e) {
             System.out.println("Exception: " + e.getMessage());
         }
 
@@ -103,9 +102,13 @@ public class Main {
             sistema.crearReparacion(dispositivo2, empleado2, "Test empleado inactivo",
                                      "N/A", 10000.0);
 
-        } catch (EmpleadoInactivoException e) {
+        } catch (EmpleadoInactivoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
+            try {
             sistema.darAltaEmpleado(empleado2); // lo reactivamos para el resto de las pruebas
+            }catch(SQLException e2) {
+            	System.out.println("Exception esperada: " + e2.getMessage());
+            }
         }
 
         // =========================================================
@@ -237,7 +240,7 @@ public class Main {
         	System.out.println(sistema.buscarEmpleado("20405060708"));
         	System.out.println(sistema.buscarEmpleado("0")); // NO EXISTE
         	System.out.println(sistema.buscarEmpleado(null)); // CUIT NULL
-        }catch(EmpleadoNoEncontradoException e) {
+        }catch(EmpleadoNoEncontradoException | SQLException e) {
         	System.out.println("Exception esperada: " + e.getMessage());
         }
         // =========================================================
