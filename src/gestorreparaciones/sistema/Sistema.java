@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import gestorreparaciones.modelo.*;
 import gestorreparaciones.dao.ClienteDAO;
+import gestorreparaciones.dao.DispositivoDAO;
 import gestorreparaciones.dao.EmpleadoDAO;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
@@ -148,28 +149,26 @@ public class Sistema {
 	
 	
 	// FUNCIONES DE DISPOSITIVOS
-	public void agregarDispositivo(Cliente cliente, Dispositivo dispositivo)throws DispositivoDuplicadoException {
-		boolean duplicado = cliente.getDispositivos().stream()
-														.anyMatch(c -> dispositivo.getImei() != null
-																	&& dispositivo.getImei().equals(c.getImei()));
-		if(duplicado) {
+	public void agregarDispositivo(Dispositivo dispositivo)throws DispositivoDuplicadoException, SQLException{
+		DispositivoDAO dao = new DispositivoDAO();
+		
+		if(dao.existePorImei(dispositivo.getImei())) {
 			throw new DispositivoDuplicadoException("Ya existe un dispositivo con imei: " + dispositivo.getImei());
 		}	
-		cliente.getDispositivos().add(dispositivo);
+		dao.guardar(dispositivo);
 	}
 	
-	public List<Dispositivo> buscarDispositivoPorModelo(String modelo) {
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.filter(d -> d.getModelo().equalsIgnoreCase(modelo))
-						.collect(Collectors.toList());
+	public List<Dispositivo> buscarDispositivoPorModelo(String modelo) throws SQLException{
+		DispositivoDAO dao = new DispositivoDAO();
+		return dao.buscarPorModelo(modelo);
 	}
-	public Dispositivo buscarDispositivoPorImei(String imei)throws DispositivoNoEncontradoException {
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.filter(d ->d.getImei() != null && d.getImei().equals(imei))
-						.findFirst()
-						.orElseThrow(() -> new DispositivoNoEncontradoException("No se encontró dispositivo con imei: " + imei));
+	public Dispositivo buscarDispositivoPorImei(String imei)throws DispositivoNoEncontradoException, SQLException {
+		DispositivoDAO dao = new DispositivoDAO();
+		Dispositivo dispositivo = dao.buscarPorImei(imei);
+		if(dispositivo == null) {
+			throw new DispositivoNoEncontradoException("No se encontró dispositivo con imei: " + imei);
+		}
+		return dispositivo;
 	}
 	
 	public void agregarAccesorio(Dispositivo dispositivo, String accesorio) {

@@ -64,8 +64,8 @@ public class Main {
                                             "356789012345678", "SN001");
             dispositivo2 = new Dispositivo(cliente1, TipoEquipo.CELULAR, "Motorola", "G32",
                                             null, "SN002"); // sin IMEI, caso realista
-            sistema.agregarDispositivo(cliente1, dispositivo1);
-            sistema.agregarDispositivo(cliente1, dispositivo2);
+            sistema.agregarDispositivo(dispositivo1);
+            sistema.agregarDispositivo(dispositivo2);
             // SE AGREGAN ACCESORIOS A DISPOSITIVOS
             sistema.agregarAccesorio(dispositivo2, "Funda protectora de Boca");
             sistema.agregarAccesorio(dispositivo2, "Funda protectora de hello kitty");
@@ -218,19 +218,23 @@ public class Main {
         }
 
         System.out.println("Por modelo (A22 5G): ");
-        sistema.imprimirLista(sistema.buscarDispositivoPorModelo("A22 5G"));
+       try {
+    	   sistema.imprimirLista(sistema.buscarDispositivoPorModelo("A22 5G"));
+       } catch(SQLException e) {
+          System.out.println("Exception esperada: " + e.getMessage());
+       }
         
         // ENCUENTRA POR IMEI
         try {
             System.out.println(sistema.buscarDispositivoPorImei("356789012345678"));
-        } catch (DispositivoNoEncontradoException e) {
+        } catch (DispositivoNoEncontradoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
         
         // NO ENCUENTRA POR IMEI
         try {
             System.out.println(sistema.buscarDispositivoPorImei("356789012345679"));
-        } catch (DispositivoNoEncontradoException e) {
+        } catch (DispositivoNoEncontradoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
         

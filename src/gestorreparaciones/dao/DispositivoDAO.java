@@ -54,6 +54,84 @@ public class DispositivoDAO {
 		return null;
 	}
 	
+	public List<Dispositivo> buscarTodos() throws SQLException {
+		String sql = "SELECT id, cliente_id, tipo_equipo, marca, modelo, imei, numero_serie "
+				    + "FROM dispositivos";
+		List<Dispositivo> dispositivos = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					dispositivos.add(mapearDispositivo(rs));
+				}
+			}
+		}
+		return dispositivos;
+	}
+	
+	public List<Dispositivo> buscarPorModelo(String modelo) throws SQLException {
+		String sql = "SELECT id, cliente_id, tipo_equipo, marca, modelo, imei, numero_serie "
+					+ "FROM dispositivos "
+					+ "WHERE modelo = ?";
+		List<Dispositivo> dispositivos = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, modelo);
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					dispositivos.add(mapearDispositivo(rs));
+				}
+			}
+		}
+		return dispositivos;
+	}
+	
+	public Dispositivo buscarPorImei(String imei) throws SQLException{
+		String sql = "SELECT id, cliente_id, tipo_equipo, marca, modelo, imei, numero_serie "
+					+ "FROM dispositivos "
+					+ "WHERE imei = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, imei);
+			try(ResultSet rs = stmt.executeQuery()){
+				if(rs.next()) {
+					return mapearDispositivo(rs);
+				}
+			}
+		}
+		return null;
+	}
+	
+	public List<Dispositivo> buscarPorCliente(int idCliente) throws SQLException{
+		String sql = "SELECT id, cliente_id, tipo_equipo, marca, modelo, imei, numero_serie "
+					+ "FROM dispositivos "
+					+ "WHERE cliente_id = ?";
+		List<Dispositivo> dispositivos = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setInt(1, idCliente);
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					dispositivos.add(mapearDispositivo(rs));
+				}
+			}
+		}
+		return dispositivos;
+	}
+	
+	public boolean existePorImei(String imei) throws SQLException{
+		String sql = "SELECT id "
+					+ "FROM dispositivos "
+					+ "WHERE imei = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, sql);
+			try(ResultSet rs = stmt.executeQuery()){
+				return rs.next();
+			}
+		}
+	}
+	
 	public Dispositivo mapearDispositivo (ResultSet rs) throws SQLException{
 		int clienteId = rs.getInt("cliente_id");
 		ClienteDAO dao = new ClienteDAO();
