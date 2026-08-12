@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import gestorreparaciones.enums.EstadoReparacion;
 
 public class Reparacion {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private Dispositivo dispositivo;
 	private Empleado empleado;
 	private EstadoReparacion estado;
@@ -34,7 +33,7 @@ public class Reparacion {
 	
 	public Reparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
 						String estadoFisicoAlRecibir, double presupuesto) {
-		this.id  = contadorId++;
+		this.id  = -1;
 		this.dispositivo = dispositivo;
 		this.empleado = empleado;
 		this.estado = EstadoReparacion.RECIBIDO;
@@ -135,6 +134,9 @@ public class Reparacion {
 	}
 	public int getId() {
 		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	public List<HistorialEstado> getHistorialEstados() {
 		return this.historialEstados;

@@ -152,7 +152,7 @@ public class Sistema {
 	public void agregarDispositivo(Dispositivo dispositivo)throws DispositivoDuplicadoException, SQLException{
 		DispositivoDAO dao = new DispositivoDAO();
 		
-		if(dao.existePorImei(dispositivo.getImei())) {
+		if(dispositivo.getImei() != null && dao.existePorImei(dispositivo.getImei())) {
 			throw new DispositivoDuplicadoException("Ya existe un dispositivo con imei: " + dispositivo.getImei());
 		}	
 		dao.guardar(dispositivo);

@@ -125,7 +125,7 @@ public class DispositivoDAO {
 					+ "WHERE imei = ?";
 		try(Connection conn = ConexionDB.obtenerConexion();
 			PreparedStatement stmt = conn.prepareStatement(sql)){
-			stmt.setString(1, sql);
+			stmt.setString(1, imei);
 			try(ResultSet rs = stmt.executeQuery()){
 				return rs.next();
 			}
