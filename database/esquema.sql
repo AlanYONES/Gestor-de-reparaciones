@@ -78,7 +78,7 @@ CREATE TABLE reparaciones (
     tiene_garantia BOOLEAN,
     dias_garantia INT,
     fecha_vencimiento_garantia DATE,
-    cancelada_con_cargo BOOLEAN,
+    cancelada_con_cargo BOOLEAN DEFAULT FALSE,
     cargo_revision DOUBLE,
     PRIMARY KEY (id),
     FOREIGN KEY (dispositivo_id) REFERENCES dispositivos(id),

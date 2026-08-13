@@ -1,6 +1,7 @@
 package gestorreparaciones.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,6 +59,131 @@ public class ReparacionDAO {
 			}
 		}
 		return null;
+	}
+	
+	public List<Reparacion> buscarTodos() throws SQLException{
+		String sql = "SELECT id, dispositivo_id, empleado_id, estado_reparacion, falla_declarada, "
+				+ "estado_fisico_al_recibir, observaciones, reparacion_realizada, "
+				+ "fecha_entrada, fecha_entrega_estimada, fecha_entrega_final, presupuesto, "
+				+ "pin_desbloqueo, tiene_garantia, dias_garantia, fecha_vencimiento_garantia, "
+				+ "cancelada_con_cargo, cargo_revision "
+				+ "FROM reparaciones ";
+		List<Reparacion> reparaciones = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					reparaciones.add(mapearReparacion(rs));
+				}
+			}
+		}
+		return reparaciones;
+	}
+	
+	public List<Reparacion> buscarPorDispositivo(int dispositivoId) throws SQLException{
+		String sql = "SELECT id, dispositivo_id, empleado_id, estado_reparacion, falla_declarada, "
+				+ "estado_fisico_al_recibir, observaciones, reparacion_realizada, "
+				+ "fecha_entrada, fecha_entrega_estimada, fecha_entrega_final, presupuesto, "
+				+ "pin_desbloqueo, tiene_garantia, dias_garantia, fecha_vencimiento_garantia, "
+				+ "cancelada_con_cargo, cargo_revision "
+				+ "FROM reparaciones "
+				+ "WHERE dispositivo_id = ?";
+		List<Reparacion> reparaciones = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setInt(1, dispositivoId);
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					reparaciones.add(mapearReparacion(rs));
+				}
+			}
+		}
+		return reparaciones;
+	}
+	
+	public List<Reparacion> buscarPorEstado(EstadoReparacion estado) throws SQLException{
+		String sql = "SELECT id, dispositivo_id, empleado_id, estado_reparacion, falla_declarada, "
+				+ "estado_fisico_al_recibir, observaciones, reparacion_realizada, "
+				+ "fecha_entrada, fecha_entrega_estimada, fecha_entrega_final, presupuesto, "
+				+ "pin_desbloqueo, tiene_garantia, dias_garantia, fecha_vencimiento_garantia, "
+				+ "cancelada_con_cargo, cargo_revision "
+				+ "FROM reparaciones "
+				+ "WHERE estado_reparacion = ?";
+		List<Reparacion> reparaciones = new ArrayList<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, estado.name());
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					reparaciones.add(mapearReparacion(rs));
+				}
+			}
+		}
+		return reparaciones;
+	}
+	
+	public void actualizarCancelacion(Reparacion reparacion) throws SQLException{
+		String sql = "UPDATE reparaciones "
+					+ "SET estado_reparacion = ?, "
+					+ "cancelada_con_cargo = ?, "
+					+ "cargo_revision = ? "
+					+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, reparacion.getEstado().name());
+			stmt.setBoolean(2, reparacion.isCanceladaConCargo());
+			stmt.setDouble(3, reparacion.getCargoRevision());
+			stmt.setInt(4, reparacion.getId());
+			
+			stmt.executeUpdate();
+		}
+	}
+	
+	public void actualizarEstado(Reparacion reparacion) throws SQLException{
+		String sql = "UPDATE reparaciones "
+					+ "SET estado_reparacion = ?, "
+					+ "fecha_entrega_final = ? "
+					+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, reparacion.getEstado().name());
+			stmt.setTimestamp(2, Timestamp.valueOf(reparacion.getFechaEntregaFinal()));
+			stmt.setInt(3, reparacion.getId());
+			
+			stmt.executeUpdate();
+		}
+	}
+	
+	public void actualizarGarantia(Reparacion reparacion) throws SQLException{
+		String sql = "UPDATE reparaciones "
+					+ "SET tiene_garantia = ?, "
+					+ "dias_garantia = ?, "
+					+ "fecha_vencimiento_garantia = ? "
+					+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setBoolean(1, reparacion.isTieneGarantia());
+			stmt.setInt(2, reparacion.getDiasGarantia());
+			stmt.setDate(3, Date.valueOf(reparacion.getFechaVencimientoGarantia()));
+			stmt.setInt(4, reparacion.getId());
+			
+			stmt.executeUpdate();
+		}
+	}
+	
+	public void actualizarObservacionesYFecha(Reparacion reparacion) throws SQLException{
+		String sql = "UPDATE reparaciones "
+					+ "SET observaciones = ?, "
+					+ "fecha_entrega_estimdada = ? "
+					+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setString(1, reparacion.getObservaciones());
+			stmt.setDate(2, Date.valueOf(reparacion.getFechaEntregaEstimada()));
+			stmt.setInt(3, reparacion.getId());
+			
+			stmt.executeUpdate();
+		}
 	}
 	
 	public Reparacion mapearReparacion(ResultSet rs) throws SQLException{
