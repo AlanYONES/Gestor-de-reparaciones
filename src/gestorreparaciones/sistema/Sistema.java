@@ -15,6 +15,7 @@ import gestorreparaciones.modelo.*;
 import gestorreparaciones.dao.ClienteDAO;
 import gestorreparaciones.dao.DispositivoDAO;
 import gestorreparaciones.dao.EmpleadoDAO;
+import gestorreparaciones.dao.ReparacionDAO;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
 
@@ -180,31 +181,31 @@ public class Sistema {
 	
 	//FUNCIONES DE REPARACION
 	public Reparacion crearReparacion(Dispositivo dispositivo, Empleado empleado, String fallaDeclarada,
-										String estadoFisicoAlRecibir, double presupuesto)throws EmpleadoInactivoException {
+										String estadoFisicoAlRecibir, double presupuesto)throws EmpleadoInactivoException, SQLException {
 		if(!empleado.isActivo()) {
 			throw new EmpleadoInactivoException(" El empleado " + empleado.getNombre() + " no está activo y no puede recibir reparaciones.");
 		}
 		Reparacion retorno = new Reparacion(dispositivo, empleado, fallaDeclarada, 
 												estadoFisicoAlRecibir , presupuesto);
-		dispositivo.getReparaciones().add(retorno);
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.guardar(retorno);
 		return retorno;
 	}
 	
 	//CAMBIA ESTADO DE REPARACION A CANCELADA, SI SE COBRA REVISION SE AGREGA EL MONTO PARA SUMARLO
-	public void cancelarReparacion(Reparacion reparacion, boolean conCargo, double cargoRevision) {
+	public void cancelarReparacion(Reparacion reparacion, boolean conCargo, double cargoRevision)throws SQLException {
 		reparacion.setEstado(EstadoReparacion.CANCELADA);
 		reparacion.setCanceladaConCargo(conCargo);
 		if(conCargo) {
 			reparacion.setCargoRevision(cargoRevision);
 		}
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.actualizarCancelacion(reparacion);
 	}
 	// ESTA FUNCIÓN SE PARA EN CADA UNO DE LOS CLIENTES Y FILTRA EN UNA LISTA LAS REPARACIONES EN UN ESTADO ESPECÍFICO
-	public List<Reparacion> listaReparacionPorEstado(EstadoReparacion estado){
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.flatMap(d -> d.getReparaciones().stream())
-						.filter(r -> r.getEstado() == estado)
-						.collect(Collectors.toList());
+	public List<Reparacion> listaReparacionPorEstado(EstadoReparacion estado)throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarPorEstado(estado);
 	}
 	public Map<EstadoReparacion, Long> cantidadReparacionesPorEstado(){
 		return clientes.stream()
@@ -214,22 +215,16 @@ public class Sistema {
 	}
 	
 	public List<Reparacion> listaReparacionesPorCliente(String dni) throws ClienteNoEncontradoException, SQLException{
-		Cliente cliente = buscarCliente(dni);
-		return cliente.getDispositivos().stream()
-										.flatMap(d -> d.getReparaciones().stream())
-										.toList();
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarPorDocumento(dni);
 	}
 	
-	public Reparacion buscarReparacionPorId(int id) throws ReparacionNoEncontradaException{
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.flatMap(d -> d.getReparaciones().stream())
-						.filter(r -> r.getId() == id)
-						.findFirst()
-						.orElseThrow(() -> new ReparacionNoEncontradaException("No se encontro la reparacion con orden n°: " + id));
+	public Reparacion buscarReparacionPorId(int id) throws ReparacionNoEncontradaException, SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarPorId(id); 
 	}
 	
-	public void cambiarEstado(Reparacion reparacion, EstadoReparacion nuevoEstado, Empleado empleado) {
+	public void cambiarEstado(Reparacion reparacion, EstadoReparacion nuevoEstado, Empleado empleado) throws SQLException {
 		reparacion.setEstado(nuevoEstado);
 		
 		if(nuevoEstado == EstadoReparacion.ENTREGADO) {
@@ -238,50 +233,50 @@ public class Sistema {
 		
 		HistorialEstado nuevoRegistro = new HistorialEstado(reparacion, nuevoEstado, empleado);
 		reparacion.getHistorialEstados().add(nuevoRegistro);
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.actualizarEstado(reparacion);
 	}
 	
-	public void asignarGarantia(Reparacion reparacion, int dias) {
+	public void asignarGarantia(Reparacion reparacion, int dias)throws SQLException {
 		if (reparacion.getFechaEntregaFinal() == null) {
 			throw new IllegalStateException("No se puede asignar garantia a una reparacion que no fué entregada");
 		}
 		reparacion.setTieneGarantia(true);
 		reparacion.setDiasGarantia(dias);
 		reparacion.setFechaVencimientoGarantia(reparacion.getFechaEntregaFinal().toLocalDate().plusDays(dias));
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.actualizarGarantia(reparacion);
 	}
 	
-	public void aplicarPlantilla(Reparacion reparacion, PlantillaDiagnostico plantilla) {
+	public void asignarEntrega(Reparacion reparacion, Empleado empleado, boolean tieneGarantia, int diasGarantia) throws SQLException{
+		cambiarEstado(reparacion, EstadoReparacion.ENTREGADO, empleado);
+		if(tieneGarantia) {
+			asignarGarantia(reparacion, diasGarantia);
+		}
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.actualizarEstado(reparacion);
+		dao.actualizarGarantia(reparacion);
+	}
+	
+	public void aplicarPlantilla(Reparacion reparacion, PlantillaDiagnostico plantilla)throws SQLException {
 		reparacion.setObservaciones(plantilla.getDescripcion());
 		reparacion.setFechaEntregaEstimada(LocalDate.now().plusDays(plantilla.getDiasEstimados()));
+		ReparacionDAO dao = new ReparacionDAO();
+		dao.actualizarObservacionesYFecha(reparacion);
 	}
+	//========================= PENDIENTE ================================
 	public void agregarRutaFoto(Reparacion reparacion, String ruta ) {
 		reparacion.getRutasFotos().add(ruta);
 	}
-	
-	public List<GarantiaInfo> dispositivosEnGarantia(){
-		return clientes.stream()
-                  .flatMap(c -> c.getDispositivos().stream())
-                  .filter(d -> d.getReparaciones().stream()
-                                .anyMatch(r -> r.isTieneGarantia() 
-                                           && r.getFechaVencimientoGarantia().isAfter(LocalDate.now())))
-                  .map(d -> {
-                      long dias = d.getReparaciones().stream()
-                                    .filter(r -> r.isTieneGarantia() 
-                                               && r.getFechaVencimientoGarantia().isAfter(LocalDate.now()))
-                                    .map(r -> ChronoUnit.DAYS.between(LocalDate.now(), r.getFechaVencimientoGarantia()))
-                                    .max(Long::compareTo)
-                                    .orElse(0L);
-                      return new GarantiaInfo(d, dias);
-                  })
-                  .sorted(Comparator.comparingLong(GarantiaInfo::getDiasRestantes))
-                  .toList();  		
+	//====================================================================
+	public List<GarantiaInfo> dispositivosEnGarantia() throws SQLException {
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarConGarantia();
 	}
 	
-	public GarantiaInfo verificacionGarantia(Dispositivo dispositivo) {
-		return dispositivo.getReparaciones().stream()
-											.filter(r -> r.isTieneGarantia() && r.getFechaVencimientoGarantia().isAfter(LocalDate.now()))
-											.map(r -> new GarantiaInfo(dispositivo, ChronoUnit.DAYS.between(LocalDate.now()	, r.getFechaVencimientoGarantia())))
-											.max(Comparator.comparingLong(GarantiaInfo::getDiasRestantes))
-											.orElse(null);
+	public List<GarantiaInfo> verificacionGarantia(Dispositivo dispositivo) throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarConGarantia(dispositivo);
 	}
 	
 	// FUNCIONES DE PAGOS
