@@ -126,7 +126,29 @@ public class ReparacionDAO {
 		}
 		return reparaciones;
 	}
-	public List<Reparacion> buscarVencidas() throws SQLException{ 
+	
+	public List<Reparacion> buscarVencidas()throws SQLException{
+		String sql = "SELECT id, dispositivo_id, empleado_id, estado_reparacion, falla_declarada, " 
+				+ "estado_fisico_al_recibir, observaciones, reparacion_realizada, " 
+				+ "fecha_entrada, fecha_entrega_estimada, fecha_entrega_final, presupuesto, " 
+				+ "pin_desbloqueo, tiene_garantia, dias_garantia, fecha_vencimiento_garantia, " 
+				+ "cancelada_con_cargo, cargo_revision " + "FROM reparaciones " 
+				+ "WHERE fecha_entrega_estimada < ? ";
+		
+	List<Reparacion> reparaciones = new ArrayList<>(); 
+	try(Connection conn = ConexionDB.obtenerConexion(); 
+		PreparedStatement stmt = conn.prepareStatement(sql)){ 
+		stmt.setDate(1, Date.valueOf(LocalDate.now()));
+		try(ResultSet rs = stmt.executeQuery()){
+			while(rs.next()) {
+				reparaciones.add(mapearReparacion(rs));
+			}
+		}
+	}
+	return reparaciones;
+	}
+	
+	public List<Reparacion> buscarGarantiasVencidas() throws SQLException{ 
 		String sql = "SELECT id, dispositivo_id, empleado_id, estado_reparacion, falla_declarada, " 
 					+ "estado_fisico_al_recibir, observaciones, reparacion_realizada, " 
 					+ "fecha_entrada, fecha_entrega_estimada, fecha_entrega_final, presupuesto, " 

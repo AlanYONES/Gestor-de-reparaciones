@@ -11,6 +11,7 @@ import java.util.List;
 import gestorreparaciones.conexion.ConexionDB;
 import gestorreparaciones.enums.TipoDocumento;
 import gestorreparaciones.modelo.Cliente;
+import gestorreparaciones.modelo.RegistroListaNegra;
 
 public class ClienteDAO {
 	
@@ -177,7 +178,12 @@ public class ClienteDAO {
 			stmt.executeUpdate();
 		}
 	}
-	
-	// public void marcarListaNegra(Cliente cliente) REQUIERE HISTORIAL_LISTA_NEGRADAO
-	
+	/*			PENDIENTE
+	public void marcarListaNegra(RegistroListaNegra registro) throws SQLException{
+		String sql = "UPDATE registro_lista_negra r "
+				+ "JOIN clientes c ON r.cliente_id = c.id "
+				+ "SET r.motivo = ?, r.empleado_id = ?, c.en_lista_negra = ? "
+				+ "WHERE"
+	}
+	*/
 }

@@ -4,15 +4,14 @@ import java.time.LocalDate;
 
 
 public class RegistroListaNegra {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private Cliente cliente;
 	private String motivo;
 	private LocalDate fecha;
 	private Empleado empleadoQueRegistro;
 	
 	public RegistroListaNegra(Cliente cliente, String motivo, LocalDate fecha, Empleado empleadoQueRegistro) {
-		this.id = contadorId++;
+		this.id = -1;
 		this.cliente = cliente;
 		this.motivo = motivo;
 		this.fecha = fecha;
@@ -46,7 +45,9 @@ public class RegistroListaNegra {
 	public int getId() {
 		return id;
 	}
-	
+	public void setId(int id) {
+		this.id = id;
+	}
 	@Override
 	public String toString() {
 		return String.format("Registro #%d - Cliente: %s, %s - Motivo: %s - fecha: %s - Registrado por: %s",

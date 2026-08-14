@@ -313,14 +313,9 @@ public class Sistema {
 						.sum();
 	}
 	
-	public List<Reparacion> reparacionesVencidas(){
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.flatMap(d -> d.getReparaciones().stream())
-						.filter(r -> r.getEstado() != EstadoReparacion.ENTREGADO
-									&& r.getEstado() != EstadoReparacion.CANCELADA)
-						.filter(r -> r.getFechaEntregaEstimada().isBefore(LocalDate.now()))
-						.toList();
+	public List<Reparacion> reparacionesVencidas()throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.buscarVencidas();
 	}
 	
 	
