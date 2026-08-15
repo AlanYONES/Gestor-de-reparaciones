@@ -62,7 +62,7 @@ public class RegistroListaNegraDAO {
 			stmt.setInt(1, id);
 			
 			try(ResultSet rs = stmt.executeQuery()){
-				if(rs.next()) {
+				while(rs.next()) {
 					registros.add(mapearRegistro(rs));
 				}
 			}
@@ -70,12 +70,9 @@ public class RegistroListaNegraDAO {
 		return registros;
 	}
 	
-	/* ======== PENDIENTE: POSIBLEMENTE HAYA QUE AGREGAR UNA CLASE DTO PARA 
-	 * 					PODER DEVOLVER NOMBRE DEL CLIENTE JUNTO AL MOTIVO
-	public List<Cliente> listarClientes() throws SQLException{
-		String sql = ""
-	}
-	*/
+
+	
+	
 	
 	
 	public RegistroListaNegra mapearRegistro(ResultSet rs) throws SQLException{

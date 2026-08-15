@@ -178,12 +178,14 @@ public class ClienteDAO {
 			stmt.executeUpdate();
 		}
 	}
-	/*			PENDIENTE
-	public void marcarListaNegra(RegistroListaNegra registro) throws SQLException{
-		String sql = "UPDATE registro_lista_negra r "
-				+ "JOIN clientes c ON r.cliente_id = c.id "
-				+ "SET r.motivo = ?, r.empleado_id = ?, c.en_lista_negra = ? "
-				+ "WHERE"
+	public void marcarListaNegra(Cliente cliente) throws SQLException{
+		String sql = "UPDATE clientes SET en_lista_negra = TRUE "
+					+ "WHERE id = ?";
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setInt(1, cliente.getId());
+			stmt.executeUpdate();
+		}
 	}
-	*/
+	
 }

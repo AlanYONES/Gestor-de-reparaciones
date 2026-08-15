@@ -284,7 +284,11 @@ public class ReparacionDAO {
 		try(Connection conn = ConexionDB.obtenerConexion();
 			PreparedStatement stmt = conn.prepareStatement(sql)){
 			stmt.setString(1, reparacion.getEstado().name());
-			stmt.setTimestamp(2, Timestamp.valueOf(reparacion.getFechaEntregaFinal()));
+	        if (reparacion.getFechaEntregaFinal() != null) {
+	            stmt.setTimestamp(2, Timestamp.valueOf(reparacion.getFechaEntregaFinal()));
+	        } else {
+	            stmt.setNull(2, java.sql.Types.TIMESTAMP);
+	        }
 			stmt.setInt(3, reparacion.getId());
 			
 			stmt.executeUpdate();
@@ -325,7 +329,6 @@ public class ReparacionDAO {
 		}
 	}
 	
-	//===========CHEQUEAR QUE DATOS SETTEAR, CONSULTA SQL DEVUELVE MÁS DATOS DE LO QUE SE LE CARGAN AL CONSTRUCTOR=======
 	public Reparacion mapearReparacion(ResultSet rs) throws SQLException{
 		int empleadoId = rs.getInt("empleado_id");
 		int dispositivoId = rs.getInt("dispositivo_id");
@@ -346,6 +349,22 @@ public class ReparacionDAO {
 		reparacion.setId(rs.getInt("id"));
 		reparacion.setEstado(EstadoReparacion.valueOf(rs.getString("estado_reparacion")));
 		reparacion.setFechaEntrada(rs.getTimestamp("fecha_entrada").toLocalDateTime());
+	    if (rs.getDate("fecha_entrega_estimada") != null) {
+	        reparacion.setFechaEntregaEstimada(rs.getDate("fecha_entrega_estimada").toLocalDate());
+	    }
+	    if (rs.getTimestamp("fecha_entrega_final") != null) {
+	        reparacion.setFechaEntregaFinal(rs.getTimestamp("fecha_entrega_final").toLocalDateTime());
+	    }
+		reparacion.setPinDesbloqueo(rs.getString("pin_desbloqueo"));
+		reparacion.setTieneGarantia(rs.getBoolean("tiene_garantia"));
+		reparacion.setDiasGarantia(rs.getInt("dias_garantia"));
+	    reparacion.setObservaciones(rs.getString("observaciones"));
+	    reparacion.setReparacionRealizada(rs.getString("reparacion_realizada"));
+		if (rs.getDate("fecha_vencimiento_garantia") != null) {
+		        reparacion.setFechaVencimientoGarantia(rs.getDate("fecha_vencimiento_garantia").toLocalDate());
+		}
+		reparacion.setCanceladaConCargo(rs.getBoolean("cancelada_con_cargo"));
+		reparacion.setCargoRevision(rs.getDouble("cargo_revision"));
 		return reparacion;
 	}
 }

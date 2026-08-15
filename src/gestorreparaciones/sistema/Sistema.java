@@ -5,16 +5,18 @@ import java.util.stream.Collectors;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import gestorreparaciones.modelo.*;
 import gestorreparaciones.dao.ClienteDAO;
 import gestorreparaciones.dao.DispositivoDAO;
 import gestorreparaciones.dao.EmpleadoDAO;
+import gestorreparaciones.dao.FotoReparacionDAO;
+import gestorreparaciones.dao.HistorialEstadoDAO;
+import gestorreparaciones.dao.PagoDAO;
+import gestorreparaciones.dao.PatronDesbloqueoDAO;
+import gestorreparaciones.dao.RegistroListaNegraDAO;
 import gestorreparaciones.dao.ReparacionDAO;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
@@ -67,10 +69,15 @@ public class Sistema {
 		throw new ClienteNoEncontradoException("No se encuentra cliente con documento: " + dni);
 	}
 	
-	public void marcarListaNegra(Cliente cliente, String motivo,Empleado empleado) {
+	public void marcarListaNegra(Cliente cliente, String motivo,Empleado empleado)throws SQLException {
 		RegistroListaNegra nuevoRegistro = new RegistroListaNegra(cliente, motivo, LocalDate.now(),empleado);
-		cliente.getListaConflictos().add(nuevoRegistro);
 		cliente.setEnListaNegra(true);
+		
+		ClienteDAO clienteDao = new ClienteDAO();
+		clienteDao.marcarListaNegra(cliente);
+		
+		RegistroListaNegraDAO registroDao = new RegistroListaNegraDAO();
+		registroDao.guardar(nuevoRegistro);
 	}
 	public void quitarDeListaNegra(Cliente cliente) throws SQLException {
 		cliente.setEnListaNegra(false);
@@ -192,6 +199,12 @@ public class Sistema {
 		return retorno;
 	}
 	
+	public void registrarPatronDesbloqueo(Reparacion reparacion, List<Integer> patron) throws SQLException {
+	    reparacion.setPatronDesbloqueo(patron);
+	    PatronDesbloqueoDAO dao = new PatronDesbloqueoDAO();
+	    dao.guardar(reparacion, patron);
+	}
+	
 	//CAMBIA ESTADO DE REPARACION A CANCELADA, SI SE COBRA REVISION SE AGREGA EL MONTO PARA SUMARLO
 	public void cancelarReparacion(Reparacion reparacion, boolean conCargo, double cargoRevision)throws SQLException {
 		reparacion.setEstado(EstadoReparacion.CANCELADA);
@@ -231,10 +244,11 @@ public class Sistema {
 			reparacion.setFechaEntregaFinal(LocalDateTime.now());
 		}
 		
+		HistorialEstadoDAO daoHistorial = new HistorialEstadoDAO();
 		HistorialEstado nuevoRegistro = new HistorialEstado(reparacion, nuevoEstado, empleado);
-		reparacion.getHistorialEstados().add(nuevoRegistro);
-		ReparacionDAO dao = new ReparacionDAO();
-		dao.actualizarEstado(reparacion);
+		daoHistorial.guardar(nuevoRegistro);
+		ReparacionDAO daoReparacion = new ReparacionDAO();
+		daoReparacion.actualizarEstado(reparacion);
 	}
 	
 	public void asignarGarantia(Reparacion reparacion, int dias)throws SQLException {
@@ -264,11 +278,13 @@ public class Sistema {
 		ReparacionDAO dao = new ReparacionDAO();
 		dao.actualizarObservacionesYFecha(reparacion);
 	}
-	//========================= PENDIENTE ================================
-	public void agregarRutaFoto(Reparacion reparacion, String ruta ) {
+	
+	public void agregarRutaFoto(Reparacion reparacion, String ruta )throws SQLException {
 		reparacion.getRutasFotos().add(ruta);
+		FotoReparacionDAO rutaFoto = new FotoReparacionDAO();
+		rutaFoto.guardar(reparacion, ruta);
 	}
-	//====================================================================
+	
 	public List<GarantiaInfo> dispositivosEnGarantia() throws SQLException {
 		ReparacionDAO dao = new ReparacionDAO();
 		return dao.buscarConGarantia();
@@ -280,11 +296,31 @@ public class Sistema {
 	}
 	
 	// FUNCIONES DE PAGOS
-	public void registrarPago(Reparacion reparacion, Pago pago)throws PagoInvalidoException {
-		if(pago.getMonto() > reparacion.calcularPendiente() ) {
-			throw new PagoInvalidoException("Pago invalido: supera el total de la reparacion.");
-		}
-		reparacion.getPagos().add(pago);
+	public void registrarPago(Reparacion reparacion, Pago pago) throws PagoInvalidoException, SQLException {
+	    PagoDAO pagoDAO = new PagoDAO();
+	    List<Pago> pagosExistentes = pagoDAO.buscarPorReparacion(reparacion.getId());
+	    
+	    double totalCobrado = pagosExistentes.stream()
+	                                          .filter(p -> !p.isPagoAnulado())
+	                                          .mapToDouble(Pago::getMonto)
+	                                          .sum();
+	    double pendiente = reparacion.calculoTotalServicio() - totalCobrado;
+	    
+	    if (pago.getMonto() > pendiente) {
+	        throw new PagoInvalidoException("Pago invalido: supera el total de la reparacion.");
+	    }
+	    
+	    pagoDAO.guardar(pago);
+	}
+	
+	public double calcularPendienteReal(Reparacion reparacion) throws SQLException {
+	    PagoDAO pagoDAO = new PagoDAO();
+	    List<Pago> pagos = pagoDAO.buscarPorReparacion(reparacion.getId());
+	    double totalCobrado = pagos.stream()
+	                                .filter(p -> !p.isPagoAnulado())
+	                                .mapToDouble(Pago::getMonto)
+	                                .sum();
+	    return reparacion.calculoTotalServicio() - totalCobrado;
 	}
 	
 	public double sugerirRecargo(FormaDePago pago) {
@@ -293,11 +329,14 @@ public class Sistema {
 		}
 		return 0.0;
 	}
-	public void anularPago(Pago pago) {
-		pago.setAnularPago();
+	
+	public void anularPago(Pago pago)throws SQLException {
+		PagoDAO dao = new PagoDAO();
+		dao.actualizarAnulado(pago);
 	}
-	public List<Pago> buscarPagosPorReparacion(Reparacion reparacion){
-		return reparacion.getPagos();
+	public List<Pago> buscarPagosPorReparacion(Reparacion reparacion)throws SQLException{
+		PagoDAO dao = new PagoDAO();
+		return dao.buscarPorReparacion(reparacion.getId());
 	}
 	
 	

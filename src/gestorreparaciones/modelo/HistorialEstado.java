@@ -4,15 +4,14 @@ import java.time.LocalDateTime;
 import gestorreparaciones.enums.EstadoReparacion;
 
 public class HistorialEstado {
-	private static int contadorId = 0;
-	private final int id;
+	private int id;
 	private Reparacion reparacion;
 	private EstadoReparacion estado;
 	private LocalDateTime fecha;
 	private Empleado empleado;
 	
 	public HistorialEstado(Reparacion reparacion, EstadoReparacion estado, Empleado empleado) {
-		this.id = contadorId++;
+		this.id = -1;
 		this.reparacion = reparacion;
 		this.estado = estado;
 		this.fecha = LocalDateTime.now();
@@ -22,6 +21,9 @@ public class HistorialEstado {
 	public int getId() {
 		return id;
 	}
+	public void setId(int id) {
+		this.id = id;
+	}
 	public Reparacion getReparacion() {
 		return reparacion;
 	}
@@ -30,6 +32,9 @@ public class HistorialEstado {
 	}
 	public LocalDateTime getFecha() {
 		return fecha;
+	}
+	public void setFecha(LocalDateTime fecha) {
+		this.fecha = fecha;
 	}
 	public Empleado getEmpleado() {
 		return empleado;

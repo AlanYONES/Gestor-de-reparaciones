@@ -106,7 +106,7 @@ CREATE TABLE pagos (
 	id INT AUTO_INCREMENT,
     reparacion_id INT,
     monto DOUBLE,
-    fecha DATE,
+    fecha DATETIME,
     forma_pago ENUM('EFECTIVO', 'TRANSFERENCIA', 'TARJETA'),
     tipo_pago ENUM('SENA', 'PAGO_TOTAL', 'SALDO'),
     recargo_porcentaje DOUBLE,

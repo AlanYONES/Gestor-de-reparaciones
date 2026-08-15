@@ -179,19 +179,13 @@ public class Reparacion {
 		}
 		return this.presupuesto;
 	}
-	public double calcularPendiente() {
-		double totalCobrado = pagos.stream()
-									.filter(p -> !p.isPagoAnulado()) // SOLAMENTE TOMA LOS PAGOS QUE NO TENGAN LA FLAG INVALIDO ACTIVA
-									.mapToDouble(Pago::getMonto)
-									.sum();
-		return calculoTotalServicio() - totalCobrado;
-	}
+
 	
 	@Override
 	public String toString() {
 		return String.format("Orden #%d - %s %s - Estado: %s - Falla: %s - Entro: %s- Observaciones: %s - "
-				+ "Entrega aproximada: %s - Total: $%.2f - Pendiente: $%.2f",
+				+ "Entrega aproximada: %s - Total: $%.2f",
 								id, dispositivo.getMarca(), dispositivo.getModelo(), 
-								estado, fallaDeclarada, fechaEntrada,observaciones,fechaEntregaEstimada, calculoTotalServicio(), calcularPendiente());
+								estado, fallaDeclarada, fechaEntrada,observaciones,fechaEntregaEstimada, calculoTotalServicio());
 	}
 }
