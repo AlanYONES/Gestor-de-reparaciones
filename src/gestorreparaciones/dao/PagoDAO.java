@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,12 +72,32 @@ public class PagoDAO {
 		return pagos;
 	}
 	
+	public double buscarIngresoPorFecha(LocalDate desde, LocalDate hasta)throws SQLException{
+		String sql = "SELECT SUM(monto) AS ingresos "
+				+ "FROM pagos "
+				+ "WHERE fecha >= ? "
+				+ "AND fecha < ?";
+		double recaudado = 0;
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			stmt.setTimestamp(1, Timestamp.valueOf(desde.atStartOfDay()));
+			stmt.setTimestamp(2, Timestamp.valueOf(hasta.plusDays(1).atStartOfDay()));
+			try(ResultSet rs = stmt.executeQuery()){
+				if(rs.next()) {
+					recaudado = rs.getDouble("ingresos");
+				}
+			}
+		}
+		return recaudado;
+	}
+	
 	public void actualizarAnulado(Pago pago) throws SQLException{
-		String sql = "UPDATE pagos "
-					+ "anulado = ?";
+		String sql = "UPDATE pagos SET anulado = ? "
+					+ "WHERE id = ?";
 		try(Connection conn = ConexionDB.obtenerConexion();
 			PreparedStatement stmt = conn.prepareStatement(sql)){
 			stmt.setBoolean(1, pago.isPagoAnulado());
+			stmt.setInt(2, pago.getId());
 			stmt.executeUpdate();
 		}
 	}

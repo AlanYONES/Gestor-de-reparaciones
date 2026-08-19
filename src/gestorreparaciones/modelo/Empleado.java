@@ -13,7 +13,7 @@ public class Empleado {
 		this.nombre = nombre;
 		this.cuit = cuit;
 		this.rol = rol;
-		this.activo = activo;
+		this.activo = true;
 	}
 
 	public String getNombre() {

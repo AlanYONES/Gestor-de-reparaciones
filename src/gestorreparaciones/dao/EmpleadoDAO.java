@@ -16,14 +16,15 @@ import gestorreparaciones.enums.RolEmpleado;
 public class EmpleadoDAO {
 	
 	public void guardar(Empleado empleado) throws SQLException {
-		String sql = "INSERT INTO empleados (nombre, cuit, rol_empleado) "
-                + "VALUES (?, ?, ?)";
+		String sql = "INSERT INTO empleados (nombre, cuit, rol_empleado, activo) "
+                + "VALUES (?, ?, ?, ?)";
 		try (Connection conn = ConexionDB.obtenerConexion();
 			PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
 			
 			stmt.setString(1, empleado.getNombre());
 			stmt.setString(2, empleado.getCuit());
 			stmt.setString(3, empleado.getRol().name());
+			stmt.setBoolean(4, empleado.isActivo());
 			
 			stmt.executeUpdate();
 			try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {

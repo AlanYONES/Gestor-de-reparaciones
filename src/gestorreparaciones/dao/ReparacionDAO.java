@@ -10,7 +10,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import gestorreparaciones.conexion.ConexionDB;
 import gestorreparaciones.enums.EstadoReparacion;
@@ -257,8 +259,84 @@ public class ReparacionDAO {
 		return reparaciones;
 	}
 	
+	public Map<EstadoReparacion, Long> cantidadPorEstado()throws SQLException{
+		String sql = "SELECT estado_reparacion, COUNT(*) AS cantidad "
+					+ "FROM reparaciones "
+					+ "GROUP BY estado_reparacion";
+		Map<EstadoReparacion, Long> cantidades = new HashMap<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					EstadoReparacion estado = EstadoReparacion.valueOf(rs.getString("estado_reparacion"));
+					Long cantidad = rs.getLong("cantidad");
+					cantidades.put(estado, cantidad);
+				}
+			}
+		}
+		return cantidades;
+	}
 	
+	public Map<String, Long> empleadoConMasReparaciones()throws SQLException{
+		String sql = "SELECT e.nombre, COUNT(*) AS cantidad "
+				+ "FROM reparaciones r "
+				+ "JOIN empleados e ON r.empleado_id = e.id "
+				+ "GROUP BY e.id, e.nombre "
+				+ "ORDER BY cantidad DESC "
+				+ "LIMIT 1";
+		Map<String, Long> empleado = new HashMap<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					String nombre = rs.getString("nombre");
+					Long cantidad = rs.getLong("cantidad");
+					empleado.put(nombre,cantidad);
+				}
+			}
+		}
+		return empleado;
+	}
 	
+	public Map<String, Long> empleadosConMasReparacionesAsc()throws SQLException{
+		String sql = "SELECT e.nombre, COUNT(*) AS cantidad "
+				+ "FROM reparaciones r "
+				+ "JOIN empleados e ON r.empleado_id = e.id "
+				+ "GROUP BY e.id, e.nombre "
+				+ "ORDER BY cantidad ASC ";
+		Map<String, Long> empleados = new HashMap<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					String nombre = rs.getString("nombre");
+					Long cantidad = rs.getLong("cantidad");
+					empleados.put(nombre,cantidad);
+				}
+			}
+		}
+		return empleados;
+	}
+	
+	public Map<String, Long> empleadosConMasReparacionesDesc()throws SQLException{
+		String sql = "SELECT e.nombre, COUNT(*) AS cantidad "
+				+ "FROM reparaciones r "
+				+ "JOIN empleados e ON r.empleado_id = e.id "
+				+ "GROUP BY e.id, e.nombre "
+				+ "ORDER BY cantidad DESC ";
+		Map<String, Long> empleados = new HashMap<>();
+		try(Connection conn = ConexionDB.obtenerConexion();
+			PreparedStatement stmt = conn.prepareStatement(sql)){
+			try(ResultSet rs = stmt.executeQuery()){
+				while(rs.next()) {
+					String nombre = rs.getString("nombre");
+					Long cantidad = rs.getLong("cantidad");
+					empleados.put(nombre,cantidad);
+				}
+			}
+		}
+		return empleados;
+	}
 	public void actualizarCancelacion(Reparacion reparacion) throws SQLException{
 		String sql = "UPDATE reparaciones "
 					+ "SET estado_reparacion = ?, "

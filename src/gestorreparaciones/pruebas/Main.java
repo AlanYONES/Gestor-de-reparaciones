@@ -114,55 +114,65 @@ public class Main {
         // =========================================================
         // 3. CAMBIOS DE ESTADO E HISTORIAL
         // =========================================================
-        sistema.cambiarEstado(reparacion1, EstadoReparacion.EN_REPARACION, empleado1);
-        sistema.cambiarEstado(reparacion1, EstadoReparacion.ENTREGADO, empleado1);
-
+       try {
+	        sistema.cambiarEstado(reparacion1, EstadoReparacion.EN_REPARACION, empleado1);
+	        sistema.cambiarEstado(reparacion1, EstadoReparacion.ENTREGADO, empleado1);
+       }catch(SQLException e) {
+       		System.out.println("Exception esperada: " + e.getMessage());
+       }
         System.out.println("\n--- Historial de estados de reparacion1 ---");
         sistema.imprimirLista(reparacion1.getHistorialEstados());
 
         // =========================================================
         // 4. GARANTÍA
         // =========================================================
-        sistema.asignarGarantia(reparacion1, 30);
-        System.out.println("\n--- Garantía asignada ---");
-        System.out.println("Vence: " + reparacion1.getFechaVencimientoGarantia());
-        System.out.println(sistema.verificacionGarantia(dispositivo1));
-
-        System.out.println("\n--- Dispositivos en garantía ---");
-        sistema.imprimirLista(sistema.dispositivosEnGarantia());
-
+        try {
+	        sistema.asignarGarantia(reparacion1, 30);
+	        System.out.println("\n--- Garantía asignada ---");
+	        System.out.println("Vence: " + reparacion1.getFechaVencimientoGarantia());
+	        System.out.println(sistema.verificacionGarantia(dispositivo1));
+	
+	        System.out.println("\n--- Dispositivos en garantía ---");
+	        sistema.imprimirLista(sistema.dispositivosEnGarantia());
+        }catch(SQLException e) {
+        	System.out.println("Exception esperada: " + e.getMessage());
+        }
         // =========================================================
         // 5. PAGOS: normal, con recargo, exceso, anulación
         // =========================================================
         try {
             // Pago parcial en efectivo (seña)
-            Pago sena = new Pago(reparacion1, 30000.0, LocalDate.now(),FormaDePago.EFECTIVO, TipoPago.SEÑA);
+            Pago sena = new Pago(reparacion1, 30000.0, FormaDePago.EFECTIVO, TipoPago.SEÑA);
             sistema.registrarPago(reparacion1, sena);
             System.out.println("\n--- Pago de seña registrado ---");
-            System.out.println("Pendiente: " + reparacion1.calcularPendiente());
+           // System.out.println("Pendiente: " + reparacion1.calcularPendiente()); 
 
             // Pago con recargo (tarjeta)
             double recargoSugerido = sistema.sugerirRecargo(FormaDePago.TARJETA);
-            Pago saldoTarjeta = new Pago(reparacion1, 30000.0, LocalDate.now(),FormaDePago.TARJETA, TipoPago.SALDO);
+            Pago saldoTarjeta = new Pago(reparacion1, 30000.0, FormaDePago.TARJETA, TipoPago.SALDO);
             saldoTarjeta.setRecargoPorcentaje(recargoSugerido);
             sistema.registrarPago(reparacion1, saldoTarjeta);
             System.out.println("\n--- Pago con tarjeta registrado ---");
             System.out.println("Monto con recargo (informativo): " + saldoTarjeta.montoConRecargo());
-            System.out.println("Pendiente: " + reparacion1.calcularPendiente());
-
+          //  System.out.println("Pendiente: " + reparacion1.calcularPendiente());
+            //*** SE ELIMINÓ CALCULAR PENDIENTE
             // Caso negativo: pago que excede el saldo
-            Pago pagoInvalido = new Pago(reparacion1, 99999.0, LocalDate.now(),FormaDePago.EFECTIVO, TipoPago.SALDO);
+            Pago pagoInvalido = new Pago(reparacion1, 99999.0, FormaDePago.EFECTIVO, TipoPago.SALDO);
             sistema.registrarPago(reparacion1, pagoInvalido);
 
-        } catch (PagoInvalidoException e) {
+        } catch (PagoInvalidoException | SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
 
         // Anulación de pago
+      try {
         sistema.anularPago(reparacion1.getPagos().get(0));
         System.out.println("\n--- Pago anulado ---");
-        System.out.println("Pendiente tras anular seña: " + reparacion1.calcularPendiente());
-
+      }catch(SQLException e) {
+          System.out.println("Exception esperada: " + e.getMessage());
+      }
+       // System.out.println("Pendiente tras anular seña: " + reparacion1.calcularPendiente());
+      //*** SE ELIMINÓ CALCULAR PENDIENTE
         // =========================================================
         // 6. LISTA NEGRA
         // =========================================================
@@ -195,7 +205,7 @@ public class Main {
             System.out.println("\n--- Cancelada con cargo de revisión ---");
             System.out.println("Total servicio: " + reparacionConRevision.calculoTotalServicio());
 
-        } catch (EmpleadoInactivoException e) {
+        } catch (EmpleadoInactivoException| SQLException e) {
             System.out.println("Exception: " + e.getMessage());
         }
 
@@ -213,7 +223,7 @@ public class Main {
         try {
             System.out.println(sistema.buscarReparacionPorId(reparacion1.getId()));
             sistema.buscarReparacionPorId(9999); // no encontrado
-        } catch (ReparacionNoEncontradaException e) {
+        } catch (ReparacionNoEncontradaException |SQLException e) {
             System.out.println("Exception esperada: " + e.getMessage());
         }
 
@@ -251,9 +261,8 @@ public class Main {
         // 9. LISTADOS Y FILTROS
         // =========================================================
         System.out.println("\n--- Reparaciones por estado (ENTREGADO) ---");
-        sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.ENTREGADO));
-
         try {
+        	sistema.imprimirLista(sistema.listaReparacionPorEstado(EstadoReparacion.ENTREGADO));
             System.out.println("\n--- Reparaciones del cliente1 ---");
             sistema.imprimirLista(sistema.listaReparacionesPorCliente("30111222"));
         } catch (ClienteNoEncontradoException | SQLException e) {
@@ -264,22 +273,22 @@ public class Main {
         // 10. REPORTES Y ESTADÍSTICAS
         // =========================================================
         System.out.println("\n--- Reparaciones vencidas ---");
-        sistema.imprimirLista(sistema.reparacionesVencidas());
-
-        System.out.println("\n--- Cantidad de reparaciones por estado ---");
-        Map<EstadoReparacion, Long> resumen = sistema.cantidadReparacionesPorEstado();
-        for (EstadoReparacion estado : EstadoReparacion.values()) {
+        try {
+        	sistema.imprimirLista(sistema.reparacionesVencidas());
+        	System.out.println("\n--- Cantidad de reparaciones por estado ---");
+        	Map<EstadoReparacion, Long> resumen = sistema.cantidadReparacionesPorEstado();
+        	for (EstadoReparacion estado : EstadoReparacion.values()) {
             System.out.println(estado + ": " + resumen.getOrDefault(estado, 0L));
         }
-
-        System.out.println("\n--- Empleado con más reparaciones ---");
-        System.out.println(sistema.empleadoConMasReparaciones());
-
-        System.out.println("\n--- Ranking de empleados (ascendente) ---");
-        sistema.imprimirLista(sistema.listadoEmpleadosPorReparacionesAscendente());
-
-        System.out.println("\n--- Total recaudado (últimos 30 días) ---");
-        double recaudado = sistema.totalRecaudadoPorRangoFecha(LocalDate.now().minusDays(30), LocalDate.now());
-        System.out.println("$" + recaudado);
+	        System.out.println("\n--- Empleado con más reparaciones ---");
+	        System.out.println(sistema.empleadoConMasReparaciones());
+	        System.out.println("\n--- Ranking de empleados (ascendente) ---");
+	        System.out.println(sistema.listadoEmpleadosPorReparacionesAscendente());
+	        System.out.println("\n--- Total recaudado (últimos 30 días) ---");
+	        double recaudado = sistema.totalRecaudadoPorRangoFecha(LocalDate.now().minusDays(30), LocalDate.now());
+	        System.out.println("$" + recaudado);
+        }catch(SQLException e) {
+        	System.out.println("Exception: " + e.getMessage());
+        }
     }
 }

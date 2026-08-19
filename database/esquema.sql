@@ -108,7 +108,7 @@ CREATE TABLE pagos (
     monto DOUBLE,
     fecha DATETIME,
     forma_pago ENUM('EFECTIVO', 'TRANSFERENCIA', 'TARJETA'),
-    tipo_pago ENUM('SENA', 'PAGO_TOTAL', 'SALDO'),
+    tipo_pago ENUM('SEÑA', 'PAGO_TOTAL', 'SALDO'),
     recargo_porcentaje DOUBLE,
     anulado BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id),
@@ -151,6 +151,8 @@ FROM clientes c
 JOIN dispositivos d ON d.cliente_id = c.id
 JOIN reparaciones r ON r.dispositivo_id = d.id;
 
+SELECT * FROM pagos;
+TRUNCATE TABLE pagos;
 -- Para crear el usuario de la aplicación (reemplazar la contraseña):
 -- CREATE USER 'gestor_app'@'localhost' IDENTIFIED BY 'tu_contraseña_aqui';
 -- GRANT ALL PRIVILEGES ON gestor_reparaciones.* TO 'gestor_app'@'localhost';

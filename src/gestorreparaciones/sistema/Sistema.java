@@ -1,37 +1,18 @@
 package gestorreparaciones.sistema;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Map;
 
 import gestorreparaciones.modelo.*;
-import gestorreparaciones.dao.ClienteDAO;
-import gestorreparaciones.dao.DispositivoDAO;
-import gestorreparaciones.dao.EmpleadoDAO;
-import gestorreparaciones.dao.FotoReparacionDAO;
-import gestorreparaciones.dao.HistorialEstadoDAO;
-import gestorreparaciones.dao.PagoDAO;
-import gestorreparaciones.dao.PatronDesbloqueoDAO;
-import gestorreparaciones.dao.RegistroListaNegraDAO;
-import gestorreparaciones.dao.ReparacionDAO;
+import gestorreparaciones.dao.*;
 import gestorreparaciones.enums.*;
 import gestorreparaciones.excepciones.*;
 
 public class Sistema {
-	private List<Cliente> clientes;
-	private List<Empleado> empleados;
-	private List<PlantillaDiagnostico> plantillasDiagnostico;
-	
-	public Sistema() {
-		this.clientes = new ArrayList<>();
-		this.empleados = new ArrayList<>();
-		this.plantillasDiagnostico = new ArrayList<>();
-	}
-	
+
 	public List<Cliente> getClientes() throws SQLException{
 		ClienteDAO dao = new ClienteDAO();
 		return dao.buscarTodos();
@@ -40,8 +21,9 @@ public class Sistema {
 		EmpleadoDAO dao = new EmpleadoDAO();
 		return dao.buscarTodos();
 	}
-	public List<PlantillaDiagnostico> getPlantillas(){
-		return new ArrayList<>(plantillasDiagnostico);
+	public List<PlantillaDiagnostico> getPlantillas()throws SQLException{
+		PlantillaDiagnosticoDAO dao = new PlantillaDiagnosticoDAO();
+		return dao.buscarTodos();
 	}
 	
 	
@@ -121,37 +103,20 @@ public class Sistema {
 	
 	
 	// LAS FUNCIONES RELACIONADAS A REPARACIONES DE EMPLEADO ESPERAN A MUDA A DAO DE CLASE REPARACIONES
-	public Empleado empleadoConMasReparaciones() {
-		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
-															.flatMap(c -> c.getDispositivos().stream())
-															.flatMap(d -> d.getReparaciones().stream())
-															.collect(Collectors.groupingBy(Reparacion::getEmpleado, Collectors.counting()));
-		return conteoPorEmpleado.entrySet().stream()
-											.max(Map.Entry.comparingByValue())
-											.map(Map.Entry::getKey)
-											.orElse(null);
+	public Map<String, Long> empleadoConMasReparaciones()throws SQLException {
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.empleadoConMasReparaciones();
 	}
 	
-	public List<Empleado> listadoEmpleadosPorReparacionesAscendente(){
-		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
-														.flatMap(c -> c.getDispositivos().stream())
-														.flatMap(d -> d.getReparaciones().stream())
-														.collect(Collectors.groupingBy(Reparacion::getEmpleado, Collectors.counting()));
-		return conteoPorEmpleado.entrySet().stream()
-											.sorted(Map.Entry.comparingByValue())
-											.map(Map.Entry::getKey)
-											.toList();
+	public Map<String, Long> listadoEmpleadosPorReparacionesAscendente()throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.empleadosConMasReparacionesAsc();
+		
 	}
 	
-	public List<Empleado> listadoEmpleadosPorReparacionesDescendente(){
-		Map<Empleado, Long> conteoPorEmpleado = clientes.stream()
-														.flatMap(c -> c.getDispositivos().stream())
-														.flatMap(d -> d.getReparaciones().stream())
-														.collect(Collectors.groupingBy(Reparacion::getEmpleado, Collectors.counting()));
-		return conteoPorEmpleado.entrySet().stream()
-											.sorted(Map.Entry.<Empleado, Long>comparingByValue().reversed())
-											.map(Map.Entry::getKey)
-											.toList();
+	public Map<String, Long> listadoEmpleadosPorReparacionesDescendente()throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.empleadosConMasReparacionesDesc();
 	}
 	
 	
@@ -179,8 +144,9 @@ public class Sistema {
 		return dispositivo;
 	}
 	
-	public void agregarAccesorio(Dispositivo dispositivo, String accesorio) {
-		dispositivo.getAccesorios().add(accesorio);
+	public void agregarAccesorio(Dispositivo dispositivo, String accesorio)throws SQLException {
+		AccesoriosDAO dao = new AccesoriosDAO();
+		dao.guardar(dispositivo, accesorio);
 	}
 	
 	
@@ -220,11 +186,9 @@ public class Sistema {
 		ReparacionDAO dao = new ReparacionDAO();
 		return dao.buscarPorEstado(estado);
 	}
-	public Map<EstadoReparacion, Long> cantidadReparacionesPorEstado(){
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.flatMap(d -> d.getReparaciones().stream())
-						.collect(Collectors.groupingBy(Reparacion::getEstado, Collectors.counting()));
+	public Map<EstadoReparacion, Long> cantidadReparacionesPorEstado()throws SQLException{
+		ReparacionDAO dao = new ReparacionDAO();
+		return dao.cantidadPorEstado();
 	}
 	
 	public List<Reparacion> listaReparacionesPorCliente(String dni) throws ClienteNoEncontradoException, SQLException{
@@ -342,14 +306,9 @@ public class Sistema {
 	
 	
 	// FUNCIONES DE REPORTE
-	public double totalRecaudadoPorRangoFecha(LocalDate desde, LocalDate hasta){
-		return clientes.stream()
-						.flatMap(c -> c.getDispositivos().stream())
-						.flatMap(d -> d.getReparaciones().stream())
-						.filter(r -> !r.getFechaEntrada().toLocalDate().isBefore(desde)
-									&& !r.getFechaEntrada().toLocalDate().isAfter(hasta))
-						.mapToDouble(Reparacion::calculoTotalServicio)
-						.sum();
+	public double totalRecaudadoPorRangoFecha(LocalDate desde, LocalDate hasta)throws SQLException{
+		PagoDAO dao = new PagoDAO();
+		return dao.buscarIngresoPorFecha(desde, hasta);
 	}
 	
 	public List<Reparacion> reparacionesVencidas()throws SQLException{
