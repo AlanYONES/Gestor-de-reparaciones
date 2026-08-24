@@ -155,7 +155,7 @@ public class ClienteDAO {
 	}
 	
 	public boolean existePorDocumento(String documento) throws SQLException{
-		String sql ="SELECT id"
+		String sql ="SELECT id "
 				+ "FROM clientes "
 				+ "WHERE numero_documento = ?";
 		try (Connection conn = ConexionDB.obtenerConexion();

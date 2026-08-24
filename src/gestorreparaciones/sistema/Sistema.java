@@ -21,6 +21,13 @@ public class Sistema {
 		EmpleadoDAO dao = new EmpleadoDAO();
 		return dao.buscarTodos();
 	}
+	
+	public List<Dispositivo> getDispositivos()throws SQLException{
+		DispositivoDAO dao = new DispositivoDAO();
+		return dao.buscarTodos();
+	}
+	
+	
 	public List<PlantillaDiagnostico> getPlantillas()throws SQLException{
 		PlantillaDiagnosticoDAO dao = new PlantillaDiagnosticoDAO();
 		return dao.buscarTodos();
