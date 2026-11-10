@@ -7,6 +7,8 @@ import gestorreparaciones.modelo.Cliente;
 import gestorreparaciones.sistema.Sistema;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -19,6 +21,8 @@ public class ClientesView {
     private final Sistema sistema;
     private TableView<Cliente> tabla;
 
+ 
+    
     public ClientesView(Sistema sistema) {
         this.sistema = sistema;
     }

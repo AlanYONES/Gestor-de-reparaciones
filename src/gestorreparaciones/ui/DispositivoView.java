@@ -10,6 +10,8 @@ import gestorreparaciones.sistema.Sistema;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -77,12 +79,41 @@ public class DispositivoView {
 		grilla.setHgap(10);
 		grilla.setVgap(10);
 		
+		// -----------------------------------------------------------
+		// ESTE FRAGMENTO AGREGA COMBO BOX (LISTA DESPLEGABLE) CON LA OPCIÓN DE BÚSQUEDA POR TECLADO
 		ComboBox<Cliente> comboCliente = new ComboBox<>();
-		try {
-			comboCliente.getItems().addAll(sistema.getClientes());
-		}catch(Exception e) {
-			mostrarError(e.getMessage());
-		}
+		comboCliente.setEditable(true);
+        ObservableList<Cliente> todosLosClientes = FXCollections.observableArrayList();
+        try {
+        	todosLosClientes.setAll(sistema.getClientes());
+        }catch(Exception e ) {
+        	mostrarError(e.getMessage());
+        }
+        
+        FilteredList<Cliente> clientesFiltrados = new FilteredList<>(todosLosClientes, 	c -> true);
+        comboCliente.setItems(clientesFiltrados);
+        
+        comboCliente.getEditor().textProperty().addListener((obs, textoAnterior, textoNuevo) -> {
+        	clientesFiltrados.setPredicate(cliente -> {
+        		if (textoNuevo == null || textoNuevo.isBlank()) {
+        			return true;
+        		}
+        		return cliente.getNumeroDocumento().contains(textoNuevo)
+        				|| cliente.getNombre().toLowerCase().contains(textoNuevo.toLowerCase())
+        				|| cliente.getApellido().toLowerCase().contains(textoNuevo.toLowerCase());
+        		});
+        });        
+        comboCliente.setCellFactory(lv -> new ListCell<>() {
+        	@Override
+        	protected void updateItem(Cliente cliente, boolean vacio) {
+        		super.updateItem(cliente, vacio);
+        		setText(vacio || cliente == null ? null : 
+        				cliente.getNombre()+ " " + cliente.getApellido() + " - " + cliente.getNumeroDocumento());
+        	}
+        });
+        comboCliente.setButtonCell(comboCliente.getCellFactory().call(null));
+        
+        // --------------------------------------------------------------------
 		ComboBox<TipoEquipo> comboTipo = new ComboBox<>();
 		comboTipo.getItems().addAll(TipoEquipo.values());
 		comboTipo.setValue(TipoEquipo.CELULAR);

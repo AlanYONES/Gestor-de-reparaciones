@@ -19,9 +19,20 @@ public class MainApp extends Application {
         ClientesView clientesView = new ClientesView(sistema);
         Tab tabClientes = new Tab("Clientes", clientesView.construir());
         tabClientes.setClosable(false);
+        
+        DispositivoView dispositivoView = new DispositivoView(sistema);
+        Tab tabDispositivos = new Tab("Dispositivos", dispositivoView.construir());
+        tabDispositivos.setClosable(false);
+        
+        ReparacionView reparacionView = new ReparacionView(sistema);
+        Tab tabReparacion = new Tab("Nueva orden", reparacionView.construir());
+        tabReparacion.setClosable(false);
 
+        
         tabPane.getTabs().add(tabClientes);
-
+        tabPane.getTabs().add(tabDispositivos);
+        tabPane.getTabs().add(tabReparacion);
+        
         Scene escena = new Scene(tabPane, 900, 600);
         stage.setTitle("Gestor de Reparaciones");
         stage.setScene(escena);
